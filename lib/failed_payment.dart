@@ -1,9 +1,8 @@
 import 'dart:ui';
-import 'package:cash_overflow/Set_password_page.dart';
 import 'package:flutter/material.dart';
 
-class DoneAfterSubscripePage extends StatelessWidget {
-  const DoneAfterSubscripePage({super.key});
+class PaymentFailedPage extends StatelessWidget {
+  const PaymentFailedPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +53,9 @@ class DoneAfterSubscripePage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // العنوان الرئيسي كـ Text واحد متصل
+                      // العنوان الرئيسي
                       Text(
-                        'You’re all set!',
+                        'Payment Unsuccessful',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: isMobile ? 26.0 : 36.0,
@@ -68,9 +67,9 @@ class DoneAfterSubscripePage extends StatelessWidget {
 
                       SizedBox(height: isMobile ? 12.0 : 18.0),
 
-                      // النص الوصفي كـ Text واحد متصل وينزل تلقائياً حسب العرض
+                      // النص الوصفي
                       Text(
-                        'Your subscription has been activated successfully.',
+                        'We couldn’t process your payment. Please try again or use a different payment method.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: isMobile ? 14.0 : 16.0,
@@ -81,25 +80,27 @@ class DoneAfterSubscripePage extends StatelessWidget {
 
                       SizedBox(height: isMobile ? 15.0 : 30.0),
 
-                      // أيقونة التأكيد بحجم متجاوب
+                      // أيقونة خطأ بحجم متجاوب باللون الأحمر
                       Center(
                         child: Container(
                           width: isMobile ? 55 : 80,
                           height: isMobile ? 55 : 80,
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: Colors.white,
+                              color: const Color(0xFFEF4444),
                               width: isMobile ? 2 : 3,
                             ),
                             borderRadius: BorderRadius.circular(100.0),
                           ),
                           child: Icon(
-                            Icons.check_rounded,
-                            color: Colors.white,
+                            Icons.close_rounded,
+                            color: const Color(0xFFEF4444),
                             size: isMobile ? 30 : 50,
                           ),
                         ),
                       ),
+
+                      // كارت ملخص المحاولة
                       Center(
                         child: Padding(
                           padding: isMobile
@@ -110,7 +111,7 @@ class DoneAfterSubscripePage extends StatelessWidget {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: Colors.white24,
-                                width: isMobile ? 1 : 1,
+                                width: 1,
                               ),
                               borderRadius: BorderRadius.circular(12.0),
                             ),
@@ -150,7 +151,7 @@ class DoneAfterSubscripePage extends StatelessWidget {
                                         '/year',
                                         textAlign: TextAlign.end,
                                         style: TextStyle(
-                                          fontSize: isMobile ? 10.0 : 14,
+                                          fontSize: isMobile ? 10.0 : 14.0,
                                           color: Colors.white70,
                                         ),
                                       ),
@@ -158,7 +159,7 @@ class DoneAfterSubscripePage extends StatelessWidget {
                                   ),
                                   SizedBox(height: isMobile ? 5.0 : 10.0),
                                   Text(
-                                    'Everything you need to predict, understand, and stay ahead of your cash.',
+                                    'Transaction failed. No charges were made to your account.',
                                     style: TextStyle(
                                       fontSize: isMobile ? 10.0 : 11.8,
                                       color: Colors.white70,
@@ -171,35 +172,53 @@ class DoneAfterSubscripePage extends StatelessWidget {
                         ),
                       ),
 
+                      // أزرار التحكم (إعادة المحاولة / العودة)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 50),
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SetPasswordPage(),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 20 : 50,
+                        ),
+                        child: Column(
+                          children: [
+                            // زر محاولة الدفع مرة أخرى
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  // Navigating back or retrying payment logic
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Colors.black,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
                                 ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
+                                child: const Text(
+                                  'Try Again',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
-                            child: const Text(
-                              'Continue',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(height: 12),
+                            // زر إلغاء أو العودة
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
