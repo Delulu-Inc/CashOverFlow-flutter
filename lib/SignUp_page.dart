@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:cash_overflow/Done_after_signup_page.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -22,6 +24,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final _businessTypeController = TextEditingController();
   final _companySizeController = TextEditingController();
 
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _firstnameController.dispose();
@@ -33,6 +37,69 @@ class _SignUpPageState extends State<SignUpPage> {
     _businessTypeController.dispose();
     _companySizeController.dispose();
     super.dispose();
+  }
+
+  // دالة إرسال البيانات للـ API
+  Future<void> _submitDemoRequest() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final url = Uri.parse('https://cashoverflow-api.runasp.net/v1/onboarding/demo-request');
+
+    // تجهيز Body بنفس الأسماء المطلوبة بالظبط
+    final body = jsonEncode({
+      "firstName": _firstnameController.text.trim(),
+      "lastName": _lastnameController.text.trim(),
+      "companyEmail": _emailController.text.trim(),
+      "companyName": _companyNameController.text.trim(),
+      "companySize": _companySizeController.text.trim(),
+      "phoneNumber": _phoneController.text.trim(),
+      "message": _businessTypeController.text.trim(), // تم ربط نوع النشاط بالـ message
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // الانتقال لصفحة النجاح عند اكتمال الطلب بنجاح
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DoneAfterSignupPage(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit: ${response.statusCode} - ${response.body}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Network error: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -73,7 +140,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Title
                           const Text(
                             'Register',
                             style: TextStyle(
@@ -94,7 +160,6 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 80),
 
-                          // Form Sections
                           LayoutBuilder(
                             builder: (context, constraints) {
                               bool isMobile = constraints.maxWidth < 650;
@@ -124,28 +189,12 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 70),
 
-                          // Register Button
+                          // Register Button المعالج
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.3,
                             height: 48,
                             child: ElevatedButton(
-                              onPressed: () {
-                                // if (_formKey.currentState!.validate()) {
-                                //   ScaffoldMessenger.of(context).showSnackBar(
-                                //     const SnackBar(
-                                //       content: Text('Processing Data...'),
-                                //       backgroundColor: Colors.green,
-                                //     ),
-                                //   );
-                                // }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const DoneAfterSignupPage(),
-                                  ),
-                                );
-                              },
+                              onPressed: _isLoading ? null : _submitDemoRequest,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: Colors.black,
@@ -154,13 +203,22 @@ class _SignUpPageState extends State<SignUpPage> {
                                   borderRadius: BorderRadius.circular(24),
                                 ),
                               ),
-                              child: const Text(
-                                'Register',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Register',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 40),
@@ -177,7 +235,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // Personal Information
   Widget _buildPersonalSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +289,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // Business Information
   Widget _buildBusinessSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +357,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  // Custom Input Field With Validation Support
   Widget _buildInputField({
     required String label,
     required String hint,

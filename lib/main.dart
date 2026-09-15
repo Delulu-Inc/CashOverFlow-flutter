@@ -1,3 +1,4 @@
+import 'package:cash_overflow/Done_after_subscripe_page.dart';
 import 'package:cash_overflow/SignIn_page.dart';
 import 'package:cash_overflow/landing_page.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LandingPage(), // الصفحة الرئيسية
+        '/accept-invite': (context) =>
+            const DoneAfterSubscripePage(), // صفحة الاشتراك
+      },
       debugShowCheckedModeBanner: false,
       title: 'Dashboard Shell',
       theme: ThemeData(
