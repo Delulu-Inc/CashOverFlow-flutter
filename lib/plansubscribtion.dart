@@ -4,47 +4,45 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
-class ActivatePlanPage extends StatefulWidget {
-  const ActivatePlanPage({super.key});
+class ActivatePlan extends StatefulWidget {
+  final String? token;
+  const ActivatePlan({super.key, this.token});
 
   @override
-  State<ActivatePlanPage> createState() => _ActivatePlanPageState();
+  State<ActivatePlan> createState() => _ActivatePlanState();
 }
 
-class _ActivatePlanPageState extends State<ActivatePlanPage> {
-  // متغير للتحكم في حالة التحميل أثناء استدعاء الـ API
+class _ActivatePlanState extends State<ActivatePlan> {
   bool _isLoading = false;
 
-  // دالة التعامل مع عملية الدفع واستدعاء الـ API
   Future<void> _handlePayment() async {
     setState(() {
       _isLoading = true;
     });
 
-    const String apiUrl = 'https://cashoverflow-api.runasp.net/v1/Checkout/create-session';
+    const String apiUrl =
+        'https://cashoverflow-api.runasp.net/v1/Checkout/create-session';
 
     // تجهيز الـ Body المطلوب في الـ API
     final Map<String, dynamic> requestData = {
       "planName": "Annual Plan",
       "amount": 499,
-      "successUrl": "https://yourdomain.com/success", // استبدل بـ URL النجاح الخاص بك
-      "cancelUrl": "https://yourdomain.com/cancel",   // استبدل بـ URL الإلغاء الخاص بك
+      "successUrl":
+          "https://delulu-inc.github.io/CashOverFlow-flutter/#/payment-success", 
+      "cancelUrl":
+          "https://delulu-inc.github.io/CashOverFlow-flutter/#/payment-failed", 
     };
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        headers: {
-          'Content-Type': 'json',
-          'Accept': 'application/json',
-        },
+        headers: {'Content-Type': 'json', 'Accept': 'application/json'},
         body: jsonEncode(requestData),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        
-        // افترضنا هنا أن الاستجابة ترجع رابط الدفع باسم checkoutUrl أو url
+
         final String? checkoutUrl = data['checkoutUrl'] ?? data['url'];
 
         if (checkoutUrl != null && await canLaunchUrl(Uri.parse(checkoutUrl))) {
@@ -56,7 +54,9 @@ class _ActivatePlanPageState extends State<ActivatePlanPage> {
           _showErrorSnackBar('Could not launch payment URL.');
         }
       } else {
-        _showErrorSnackBar('Failed to create payment session. Status: ${response.statusCode}');
+        _showErrorSnackBar(
+          'Failed to create payment session. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
       _showErrorSnackBar('An error occurred: $e');
@@ -72,10 +72,7 @@ class _ActivatePlanPageState extends State<ActivatePlanPage> {
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.redAccent,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
     );
   }
 
@@ -226,7 +223,9 @@ class _ActivatePlanPageState extends State<ActivatePlanPage> {
                                         padding: const EdgeInsets.all(2),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF3B82F6),
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.check,
@@ -253,7 +252,7 @@ class _ActivatePlanPageState extends State<ActivatePlanPage> {
                         ),
                       ),
                       SizedBox(height: isMobile ? 24.0 : 36.0),
-                      
+
                       // زر الدفع مع إظهار مؤشر التحميل عند الضغط
                       SizedBox(
                         height: 52,

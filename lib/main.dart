@@ -3,6 +3,7 @@ import 'package:cash_overflow/Done_after_subscripe_page.dart';
 import 'package:cash_overflow/SignIn_page.dart';
 import 'package:cash_overflow/failed_payment.dart';
 import 'package:cash_overflow/landing_page.dart';
+import 'package:cash_overflow/plansubscribtion.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,11 +17,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',
-      routes: {
-        '/': (context) => const LandingPage(),
-        '/accept-invite': (context) => const ActivatePlanPage(),
-        '/payment-success': (context) => const DoneAfterSubscripePage(),
-        '/payment-failed': (context) => const PaymentFailedPage(),
+      onGenerateRoute: (settings) {
+        final Uri uri = Uri.parse(settings.name ?? '/');
+
+        if (uri.path == '/accept-invite') {
+          final token = uri.queryParameters['token'];
+          return MaterialPageRoute(
+            builder: (context) => ActivatePlan(token: token),
+          );
+        }
+
+        if (uri.path == '/payment-success') {
+          return MaterialPageRoute(builder: (context) => const DoneAfterSubscripePage());
+        }
+
+        if (uri.path == '/payment-failed') {
+          return MaterialPageRoute(builder: (context) => const PaymentFailedPage());
+        }
+
+        return MaterialPageRoute(builder: (context) => const LandingPage());
       },
       debugShowCheckedModeBanner: false,
       title: 'Dashboard Shell',
