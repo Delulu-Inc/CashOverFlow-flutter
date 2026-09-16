@@ -1,5 +1,5 @@
 import 'dart:html' as html;
-//import 'package:cash_overflow/Activate_plan_page.dart';
+// import 'package:cash_overflow/Activate_plan_page.dart';
 import 'package:cash_overflow/Done_after_subscripe_page.dart';
 import 'package:cash_overflow/SignIn_page.dart';
 import 'package:cash_overflow/failed_payment.dart';
@@ -20,15 +20,24 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       onGenerateRoute: (settings) {
-        final String routeName = settings.name ?? '/';
+        final String rawRouteName = settings.name ?? '/';
+        
+        // استخراج الـ Path النظيف بدون query parameters
+        final Uri routeUri = Uri.parse(rawRouteName);
+        final String path = routeUri.path;
 
-        if (routeName.startsWith('/accept-invite')) {
-          final Uri uri = Uri.parse(
+        // دالة مساعدة لقراءة الـ URI من الـ Hash أو الـ URL المباشر
+        Uri getFullUri() {
+          return Uri.parse(
             html.window.location.hash.isNotEmpty
                 ? html.window.location.hash.substring(1)
                 : html.window.location.href,
           );
+        }
 
+        // 1. مسار قبول الدعوة
+        if (path.startsWith('/accept-invite')) {
+          final uri = getFullUri();
           final String? inviteToken = uri.queryParameters['token'];
 
           return MaterialPageRoute(
@@ -36,29 +45,20 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        if (routeName.startsWith('/set-password')) {
-          final Uri uri = Uri.parse(
-            html.window.location.hash.isNotEmpty
-                ? html.window.location.hash.substring(1)
-                : html.window.location.href,
-          );
-
+        // 2. مسار ضبط كلمة السر
+        if (path.startsWith('/set-password')) {
+          final uri = getFullUri();
           final String? inviteToken = uri.queryParameters['token'];
           final String? orgId = uri.queryParameters['orgId'];
 
           return MaterialPageRoute(
-            builder: (context) =>
-                SetPasswordPage(token: inviteToken, orgId: orgId),
+            builder: (context) => SetPasswordPage(token: inviteToken, orgId: orgId),
           );
         }
 
-        if (routeName == '/payment-success') {
-          final Uri uri = Uri.parse(
-            html.window.location.hash.isNotEmpty
-                ? html.window.location.hash.substring(1)
-                : html.window.location.href,
-          );
-
+        // 3. مسار نجاح الدفع (تعديل المقارنة للتعامل مع الـ query parameters)
+        if (path.startsWith('/payment-success')) {
+          final uri = getFullUri();
           final String? sessionId = uri.queryParameters['session_id'];
 
           return MaterialPageRoute(
@@ -66,13 +66,9 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        if (routeName == '/payment-failed' || routeName == '/payment-cancel') {
-          final Uri uri = Uri.parse(
-            html.window.location.hash.isNotEmpty
-                ? html.window.location.hash.substring(1)
-                : html.window.location.href,
-          );
-
+        // 4. مسار فشل الدفع
+        if (path.startsWith('/payment-failed') || path.startsWith('/payment-cancel')) {
+          final uri = getFullUri();
           final String? errorMessage = uri.queryParameters['error'];
 
           return MaterialPageRoute(
@@ -80,11 +76,12 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        if (routeName == '/login') {
+        // 5. مسار تسجيل الدخول
+        if (path == '/login') {
           return MaterialPageRoute(builder: (context) => const SignInPage());
         }
 
-        // Default
+        // Default: Landing Page
         return MaterialPageRoute(builder: (context) => const LandingPage());
       },
       debugShowCheckedModeBanner: false,
