@@ -119,7 +119,20 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
       return;
     }
 
-    final tokenToUse = widget.token ?? '';
+    // 1. استخراج الـ token من الـ widget أو قراءته مباشرة من الـ URL بعد الـ #
+    String tokenToUse = widget.token ?? '';
+
+    if (tokenToUse.isEmpty) {
+      final currentUri = Uri.base;
+      if (currentUri.hasFragment) {
+        final fragmentUri = Uri.parse(currentUri.fragment);
+        tokenToUse = fragmentUri.queryParameters['token'] ?? '';
+      } else {
+        tokenToUse = currentUri.queryParameters['token'] ?? '';
+      }
+    }
+
+    // 2. التحقق من وجود الـ token
     if (tokenToUse.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -150,6 +163,8 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
             backgroundColor: Colors.green,
           ),
         );
+
+        // التوجيه إلى صفحة تسجيل الدخول عند النجاح
         Navigator.of(context).pushReplacementNamed('/login');
       }
     } catch (e) {
