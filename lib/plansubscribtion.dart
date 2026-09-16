@@ -2,30 +2,28 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 // ==========================================
-// 1. MODELS
+// 1. UPDATED MODELS
 // ==========================================
 
 class CreateCheckoutSessionRequest {
+  final String invitationToken;
   final String planName;
   final double amount;
-  final String successUrl;
-  final String cancelUrl;
 
   CreateCheckoutSessionRequest({
+    required this.invitationToken,
     required this.planName,
     required this.amount,
-    required this.successUrl,
-    required this.cancelUrl,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      'invitationToken': invitationToken,
       'planName': planName,
       'amount': amount,
-      'successUrl': successUrl,
-      'cancelUrl': cancelUrl,
     };
   }
 }
@@ -34,27 +32,35 @@ class CheckoutSessionResponse {
   final bool isSuccess;
   final String? sessionId;
   final String? checkoutUrl;
+  final double? amount;
+  final String? currency;
+  final String? status;
   final String? message;
 
   CheckoutSessionResponse({
     required this.isSuccess,
     this.sessionId,
     this.checkoutUrl,
+    this.amount,
+    this.currency,
+    this.status,
     this.message,
   });
 
   factory CheckoutSessionResponse.fromJson(Map<String, dynamic> json) {
     return CheckoutSessionResponse(
       isSuccess: true,
-      sessionId: json['sessionId'] ?? json['id'],
-      checkoutUrl: json['checkoutUrl'] ?? json['url'],
-      message: json['message'],
+      sessionId: json['sessionId'],
+      checkoutUrl: json['checkoutUrl'],
+      amount: (json['amount'] as num?)?.toDouble(),
+      currency: json['currency'],
+      status: json['status'],
     );
   }
 }
 
 // ==========================================
-// 2. CHECKOUT SERVICE
+// 2. UPDATED CHECKOUT SERVICE
 // ==========================================
 
 class CheckoutService {
@@ -64,13 +70,11 @@ class CheckoutService {
 
   Future<CheckoutSessionResponse> createCheckoutSession({
     required CreateCheckoutSessionRequest request,
-    String? token,
   }) async {
     final url = Uri.parse('$baseUrl/Checkout/create-session');
 
     final headers = {
       'Content-Type': 'application/json',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
 
     try {
@@ -80,13 +84,13 @@ class CheckoutService {
         body: jsonEncode(request.toJson()),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return CheckoutSessionResponse.fromJson(data);
       } else {
         return CheckoutSessionResponse(
           isSuccess: false,
-          message: 'Error ${response.statusCode}: ${response.reasonPhrase}',
+          message: 'Error ${response.statusCode}: ${response.body}',
         );
       }
     } catch (e) {
@@ -104,9 +108,8 @@ class CheckoutService {
 
 class ActivatePlan extends StatefulWidget {
   final String? inviteToken;
-  final String? userToken;
 
-  const ActivatePlan({super.key, this.userToken, this.inviteToken});
+  const ActivatePlan({super.key, this.inviteToken});
 
   @override
   State<ActivatePlan> createState() => _ActivatePlanState();
@@ -116,47 +119,43 @@ class _ActivatePlanState extends State<ActivatePlan> {
   final CheckoutService _checkoutService = CheckoutService();
   bool _isLoading = false;
 
-  final String _planName = 'Annual Plan';
-  final double _amount = 499.0;
+  final String _planName = 'Pro';
+  final double _amount = 49.00;
 
   Future<void> _handleProceedToPayment() async {
     setState(() => _isLoading = true);
 
     final request = CreateCheckoutSessionRequest(
+      invitationToken: widget.inviteToken ?? '',
       planName: _planName,
       amount: _amount,
-      successUrl: 'https://delulu-inc.github.io/CashOverFlow-flutter/#/payment-success',
-      cancelUrl: 'https://delulu-inc.github.io/CashOverFlow-flutter/#/payment-failed',
     );
 
     final response = await _checkoutService.createCheckoutSession(
       request: request,
-      token: widget.userToken,
     );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (response.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Session created successfully! ID: ${response.sessionId ?? "OK"}'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // هنا يمكنك توجيه المستخدم لصفحة تفاصيل الدفع أو فتح رابط الـ CheckoutUrl إذا كان الباك إند يعيد رابط
-      /*
-      if (response.checkoutUrl != null) {
-        // Open URL in webview or browser
+    if (response.isSuccess && response.checkoutUrl != null) {
+      final Uri stripeUri = Uri.parse(response.checkoutUrl!);
+      
+      if (await canLaunchUrl(stripeUri)) {
+        await launchUrl(stripeUri, mode: LaunchMode.platformDefault);
       } else {
-        // Navigate to internal payment screen
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not launch Stripe checkout page.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
-      */
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(response.message ?? 'Failed to create session'),
+          content: Text(response.message ?? 'Failed to create payment session.'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -325,7 +324,6 @@ class _ActivatePlanState extends State<ActivatePlan> {
                           height: 48,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _handleProceedToPayment,
-                            
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
