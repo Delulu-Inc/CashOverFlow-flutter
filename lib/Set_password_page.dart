@@ -146,11 +146,11 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
       if (mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Password set successfully! Redirecting...'),
+            content: Text('Password set successfully! Redirecting to login...'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pushReplacementNamed(context, '/SignIn');
+        Navigator.of(context).pushReplacementNamed('/login');
       }
     } catch (e) {
       if (mounted) {
