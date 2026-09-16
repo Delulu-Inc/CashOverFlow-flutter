@@ -20,25 +20,29 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       onGenerateRoute: (settings) {
-        final String currentUrl = html.window.location.href;
+        final String routeName = settings.name ?? '/';
 
-        // استخراج المسار مع الـ Query Parameters من الرابط بعد العلامة #
-        final Uri uri = Uri.parse(
-          currentUrl.contains('#')
-              ? currentUrl.split('#').last
-              : settings.name ?? '/',
-        );
+        if (routeName.startsWith('/accept-invite')) {
+          final Uri uri = Uri.parse(
+            html.window.location.hash.isNotEmpty
+                ? html.window.location.hash.substring(1)
+                : html.window.location.href,
+          );
 
-        // 1. مسار قبول الدعوة
-        if (uri.path == '/accept-invite') {
           final String? inviteToken = uri.queryParameters['token'];
+
           return MaterialPageRoute(
             builder: (context) => ActivatePlan(inviteToken: inviteToken),
           );
         }
 
-        // 2. مسار ضبط كلمة السر
-        if (uri.path == '/set-password') {
+        if (routeName.startsWith('/set-password')) {
+          final Uri uri = Uri.parse(
+            html.window.location.hash.isNotEmpty
+                ? html.window.location.hash.substring(1)
+                : html.window.location.href,
+          );
+
           final String? inviteToken = uri.queryParameters['token'];
           final String? orgId = uri.queryParameters['orgId'];
 
@@ -48,28 +52,39 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        // 3. مسار نجاح عملية الدفع (يتوجه حصراً لصفحة DoneAfterSubscripePage)
-        if (uri.path == '/payment-success') {
+        if (routeName == '/payment-success') {
+          final Uri uri = Uri.parse(
+            html.window.location.hash.isNotEmpty
+                ? html.window.location.hash.substring(1)
+                : html.window.location.href,
+          );
+
           final String? sessionId = uri.queryParameters['session_id'];
+
           return MaterialPageRoute(
             builder: (context) => DoneAfterSubscripePage(sessionId: sessionId),
           );
         }
 
-        // 4. مسار فشل أو إلغاء عملية الدفع
-        if (uri.path == '/payment-failed' || uri.path == '/payment-cancel') {
+        if (routeName == '/payment-failed' || routeName == '/payment-cancel') {
+          final Uri uri = Uri.parse(
+            html.window.location.hash.isNotEmpty
+                ? html.window.location.hash.substring(1)
+                : html.window.location.href,
+          );
+
           final String? errorMessage = uri.queryParameters['error'];
+
           return MaterialPageRoute(
             builder: (context) => PaymentFailedPage(errorMessage: errorMessage),
           );
         }
 
-        // 5. مسار تسجيل الدخول
-        if (uri.path == '/login') {
+        if (routeName == '/login') {
           return MaterialPageRoute(builder: (context) => const SignInPage());
         }
 
-        // Default Route
+        // Default
         return MaterialPageRoute(builder: (context) => const LandingPage());
       },
       debugShowCheckedModeBanner: false,
