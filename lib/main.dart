@@ -21,9 +21,8 @@ class MyApp extends StatelessWidget {
         final Uri uri = Uri.parse(settings.name ?? '/');
 
         if (uri.path == '/accept-invite') {
-          final token = uri.queryParameters['token'];
           return MaterialPageRoute(
-            builder: (context) => ActivatePlan(token: token),
+            builder: (context) => ActivatePlan(),
           );
         }
 

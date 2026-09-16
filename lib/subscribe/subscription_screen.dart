@@ -855,10 +855,8 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  // إغلاق دايالوج الإدخال أولاً لتجنب اختلاط الـ Navigation
                   Navigator.of(dialogContext).pop();
 
-                  // إظهار الـ Loading Indicator على الشاشة الرئيسية
                   showDialog(
                     context: outerContext,
                     barrierDismissible: false,
@@ -879,8 +877,6 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                   }
 
                   if (!outerContext.mounted) return;
-
-                  // إغلاق الـ Loading Indicator
                   Navigator.of(outerContext, rootNavigator: true).pop();
 
                   if (success) {
