@@ -23,7 +23,9 @@ class MyApp extends StatelessWidget {
         final Uri uri = Uri.parse(currentUrl.contains('#') 
             ? currentUrl.split('#').last 
             : settings.name ?? '/');
-        if (uri.path == '/accept-invite') {
+            
+        // اللينك الجديد الخاص بإعداد كلمة السر للـ Backend
+        if (uri.path == '/set-password') {
           final String? inviteToken = uri.queryParameters['token'];
           return MaterialPageRoute(
             builder: (context) => ActivatePlan(inviteToken: inviteToken),

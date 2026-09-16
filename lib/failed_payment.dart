@@ -1,14 +1,12 @@
 import 'dart:ui';
+import 'package:cash_overflow/landing_page.dart';
 import 'package:cash_overflow/plansubscribtion.dart';
 import 'package:flutter/material.dart';
 
 class PaymentFailedPage extends StatelessWidget {
   final String? errorMessage;
 
-  const PaymentFailedPage({
-    super.key,
-    this.errorMessage,
-  });
+  const PaymentFailedPage({super.key, this.errorMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +99,7 @@ class PaymentFailedPage extends StatelessWidget {
                           width: double.infinity,
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.25),
-                            border: Border.all(
-                              color: Colors.white24,
-                              width: 1,
-                            ),
+                            border: Border.all(color: Colors.white24, width: 1),
                             borderRadius: BorderRadius.circular(16.0),
                           ),
                           child: Padding(
@@ -113,7 +108,8 @@ class PaymentFailedPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'Cash Overflow',
@@ -127,7 +123,8 @@ class PaymentFailedPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 6.0),
                                 Row(
-                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.baseline,
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
                                     Text(
@@ -177,7 +174,8 @@ class PaymentFailedPage extends StatelessWidget {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const ActivatePlan(),
+                                      builder: (context) =>
+                                          const ActivatePlan(),
                                     ),
                                   );
                                 },
@@ -201,7 +199,12 @@ class PaymentFailedPage extends StatelessWidget {
                             const SizedBox(height: 12),
                             TextButton(
                               onPressed: () {
-                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LandingPage(),
+                                  ),
+                                );
                               },
                               child: const Text(
                                 'Cancel',

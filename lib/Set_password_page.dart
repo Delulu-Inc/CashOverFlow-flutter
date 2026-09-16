@@ -30,11 +30,11 @@ class SetPasswordRequest {
 // 2. SERVICE
 // ==========================================
 class OnboardingService {
-  static const String baseUrl = 'https://cashoverflow-api.runasp.net/v1'; // استبدل بالرابط الخاص بك
+  static const String baseUrl = 'https://cashoverflow-api.runasp.net/v1';
 
   static Future<bool> acceptInvite(SetPasswordRequest request) async {
-    final url = Uri.parse('$baseUrl/v1/onboarding/accept-invite');
-    
+    final url = Uri.parse('$baseUrl/onboarding/accept-invite');
+
     try {
       final response = await http.post(
         url,
@@ -45,7 +45,7 @@ class OnboardingService {
         body: jsonEncode(request.toJson()),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       } else {
         final errorData = jsonDecode(response.body);
@@ -62,11 +62,9 @@ class OnboardingService {
 // ==========================================
 class SetPasswordPage extends StatefulWidget {
   final String? token;
+  final String? orgId;
 
-  const SetPasswordPage({
-    super.key,
-    this.token,
-  });
+  const SetPasswordPage({super.key, this.token, this.orgId});
 
   @override
   State<SetPasswordPage> createState() => _SetPasswordPageState();
@@ -75,7 +73,8 @@ class SetPasswordPage extends StatefulWidget {
 class _SetPasswordPageState extends State<SetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -147,12 +146,11 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
       if (mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Password updated successfully!'),
+            content: Text('Password set successfully! Redirecting...'),
             backgroundColor: Colors.green,
           ),
         );
-        // التوجيه إلى شاشة تسجيل الدخول أو الشاشة الرئيسية
-        // Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        Navigator.pushReplacementNamed(context, '/SignIn');
       }
     } catch (e) {
       if (mounted) {
@@ -239,7 +237,7 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
                         ),
                         const SizedBox(height: 12.0),
                         Text(
-                          'Choose a strong password to keep your account secure.',
+                          'Choose a strong password to complete your account setup.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: isMobile ? 13.0 : 15.0,
@@ -269,7 +267,8 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
                           obscureText: _obscureConfirmPassword,
                           onToggleVisibility: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -279,10 +278,7 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
                           _hasMinLength,
                         ),
                         const SizedBox(height: 6.0),
-                        _buildRequirementItem(
-                          'Include a number',
-                          _hasNumber,
-                        ),
+                        _buildRequirementItem('Include a number', _hasNumber),
                         const SizedBox(height: 6.0),
                         _buildRequirementItem(
                           'Include a special character',
