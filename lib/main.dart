@@ -1,4 +1,4 @@
-import 'dart:html' as html; // لاستخراج الـ URL المباشر في Flutter Web
+import 'dart:html' as html; 
 //import 'package:cash_overflow/Activate_plan_page.dart';
 import 'package:cash_overflow/Done_after_subscripe_page.dart';
 //import 'package:cash_overflow/SignIn_page.dart';
@@ -20,11 +20,19 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       onGenerateRoute: (settings) {
         final String currentUrl = html.window.location.href;
-        final Uri uri = Uri.parse(currentUrl.contains('#') 
-            ? currentUrl.split('#').last 
-            : settings.name ?? '/');
-            
-        // اللينك الجديد الخاص بإعداد كلمة السر للـ Backend
+        final Uri uri = Uri.parse(
+          currentUrl.contains('#')
+              ? currentUrl.split('#').last
+              : settings.name ?? '/',
+        );
+
+        if (uri.path == '/accept-invite') {
+          final String? inviteToken = uri.queryParameters['token'];
+          return MaterialPageRoute(
+            builder: (context) => ActivatePlan(inviteToken: inviteToken),
+          );
+        }
+
         if (uri.path == '/set-password') {
           final String? inviteToken = uri.queryParameters['token'];
           return MaterialPageRoute(
