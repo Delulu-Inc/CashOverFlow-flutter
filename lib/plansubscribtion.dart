@@ -103,9 +103,10 @@ class CheckoutService {
 // ==========================================
 
 class ActivatePlan extends StatefulWidget {
+  final String? inviteToken;
   final String? userToken;
 
-  const ActivatePlan({super.key, this.userToken});
+  const ActivatePlan({super.key, this.userToken, this.inviteToken});
 
   @override
   State<ActivatePlan> createState() => _ActivatePlanState();

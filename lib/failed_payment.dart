@@ -1,14 +1,18 @@
 import 'dart:ui';
+import 'package:cash_overflow/plansubscribtion.dart';
 import 'package:flutter/material.dart';
 
 class PaymentFailedPage extends StatelessWidget {
-  const PaymentFailedPage({super.key});
+  final String? errorMessage;
+
+  const PaymentFailedPage({
+    super.key,
+    this.errorMessage,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // لمعرفة عرض الشاشة الحالية
     final double screenWidth = MediaQuery.of(context).size.width;
-    // تحديد ما إذا كانت الشاشة صغيرة (مثل الموبايل)
     final bool isMobile = screenWidth < 600;
 
     return Scaffold(
@@ -33,19 +37,18 @@ class PaymentFailedPage extends StatelessWidget {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                 child: Container(
-                  // تحديد أقصى عرض للكمبيوتر مع مرونة التكيف مع الهاتف
                   constraints: BoxConstraints(
                     maxWidth: isMobile ? double.infinity : 650,
                   ),
                   padding: EdgeInsets.symmetric(
                     horizontal: isMobile ? 24.0 : 48.0,
-                    vertical: isMobile ? 32.0 : 90.0,
+                    vertical: isMobile ? 32.0 : 60.0,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF232528).withOpacity(0.75),
+                    color: const Color(0xFF232528).withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(24.0),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withValues(alpha: 0.12),
                       width: 1,
                     ),
                   ),
@@ -53,7 +56,6 @@ class PaymentFailedPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // العنوان الرئيسي
                       Text(
                         'Payment Unsuccessful',
                         textAlign: TextAlign.center,
@@ -64,10 +66,7 @@ class PaymentFailedPage extends StatelessWidget {
                           height: 1.2,
                         ),
                       ),
-
                       SizedBox(height: isMobile ? 12.0 : 18.0),
-
-                      // النص الوصفي
                       Text(
                         'We couldn’t process your payment. Please try again or use a different payment method.',
                         textAlign: TextAlign.center,
@@ -77,14 +76,11 @@ class PaymentFailedPage extends StatelessWidget {
                           height: 1.5,
                         ),
                       ),
-
-                      SizedBox(height: isMobile ? 15.0 : 30.0),
-
-                      // أيقونة خطأ بحجم متجاوب باللون الأحمر
+                      SizedBox(height: isMobile ? 20.0 : 30.0),
                       Center(
                         child: Container(
-                          width: isMobile ? 55 : 80,
-                          height: isMobile ? 55 : 80,
+                          width: isMobile ? 60 : 80,
+                          height: isMobile ? 60 : 80,
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: const Color(0xFFEF4444),
@@ -95,97 +91,95 @@ class PaymentFailedPage extends StatelessWidget {
                           child: Icon(
                             Icons.close_rounded,
                             color: const Color(0xFFEF4444),
-                            size: isMobile ? 30 : 50,
+                            size: isMobile ? 35 : 50,
                           ),
                         ),
                       ),
-
-                      // كارت ملخص المحاولة
-                      Center(
-                        child: Padding(
-                          padding: isMobile
-                              ? const EdgeInsets.all(25)
-                              : const EdgeInsets.all(50),
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.white24,
-                                width: 1,
-                              ),
-                              borderRadius: BorderRadius.circular(12.0),
+                      Padding(
+                        padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            border: Border.all(
+                              color: Colors.white24,
+                              width: 1,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 25,
-                                vertical: 25,
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Cash Overflow',
-                                        style: TextStyle(
-                                          fontSize: isMobile ? 16.0 : 20.0,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Cash Overflow',
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 16.0 : 20.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
-                                    ],
-                                  ),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '\$499',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: isMobile ? 20.0 : 28.0,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(width: isMobile ? 2.0 : 6.0),
-                                      Text(
-                                        '/year',
-                                        textAlign: TextAlign.end,
-                                        style: TextStyle(
-                                          fontSize: isMobile ? 10.0 : 14.0,
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: isMobile ? 5.0 : 10.0),
-                                  Text(
-                                    'Transaction failed. No charges were made to your account.',
-                                    style: TextStyle(
-                                      fontSize: isMobile ? 10.0 : 11.8,
-                                      color: Colors.white70,
                                     ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6.0),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      '\$499',
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 22.0 : 28.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4.0),
+                                    Text(
+                                      '/year',
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 12.0 : 14.0,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  errorMessage ??
+                                      'Transaction failed. No charges were made to your account.',
+                                  style: TextStyle(
+                                    fontSize: isMobile ? 12.0 : 13.0,
+                                    color: Colors.white70,
+                                    height: 1.4,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-
-                      // أزرار التحكم (إعادة المحاولة / العودة)
                       Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 20 : 50,
+                          horizontal: isMobile ? 0 : 50,
                         ),
                         child: Column(
                           children: [
-                            // زر محاولة الدفع مرة أخرى
                             SizedBox(
                               width: double.infinity,
                               height: 48,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // Navigating back or retrying payment logic
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const ActivatePlan(),
+                                    ),
+                                  );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
@@ -205,7 +199,6 @@ class PaymentFailedPage extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            // زر إلغاء أو العودة
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context);

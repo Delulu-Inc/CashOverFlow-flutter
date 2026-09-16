@@ -19,19 +19,25 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       onGenerateRoute: (settings) {
         final Uri uri = Uri.parse(settings.name ?? '/');
-
         if (uri.path == '/accept-invite') {
+          final String? inviteToken = uri.queryParameters['token'];
+
           return MaterialPageRoute(
-            builder: (context) => ActivatePlan(),
+            builder: (context) => ActivatePlan(inviteToken: inviteToken),
           );
         }
 
         if (uri.path == '/payment-success') {
-          return MaterialPageRoute(builder: (context) => const DoneAfterSubscripePage());
+          final String? sessionId = uri.queryParameters['session_id'];
+          return MaterialPageRoute(
+            builder: (context) => DoneAfterSubscripePage(sessionId: sessionId),
+          );
         }
 
-        if (uri.path == '/payment-failed') {
-          return MaterialPageRoute(builder: (context) => const PaymentFailedPage());
+        if (uri.path == '/payment-cancel') {
+          return MaterialPageRoute(
+            builder: (context) => const PaymentFailedPage(),
+          );
         }
 
         return MaterialPageRoute(builder: (context) => const LandingPage());
