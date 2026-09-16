@@ -83,6 +83,11 @@ class CheckoutService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         return CheckoutSessionResponse.fromJson(data);
+      } else if (response.statusCode == 401) {
+        return CheckoutSessionResponse(
+          isSuccess: false,
+          message: 'Unauthorized (401): Please log in or provide a valid token.',
+        );
       } else {
         return CheckoutSessionResponse(
           isSuccess: false,
@@ -120,6 +125,17 @@ class _ActivatePlanState extends State<ActivatePlan> {
   final double _amount = 499.0;
 
   Future<void> _handleProceedToPayment() async {
+    // التحقق المبدئي من وجود التوكن لمنع إرسال طلب غير موثق
+    if (widget.userToken == null || widget.userToken!.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Authentication token missing. Please log in first.'),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     final request = CreateCheckoutSessionRequest(
@@ -145,12 +161,9 @@ class _ActivatePlanState extends State<ActivatePlan> {
         ),
       );
 
-      // هنا يمكنك توجيه المستخدم لصفحة تفاصيل الدفع أو فتح رابط الـ CheckoutUrl إذا كان الباك إند يعيد رابط
       /*
       if (response.checkoutUrl != null) {
         // Open URL in webview or browser
-      } else {
-        // Navigate to internal payment screen
       }
       */
     } else {
@@ -325,7 +338,6 @@ class _ActivatePlanState extends State<ActivatePlan> {
                           height: 48,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _handleProceedToPayment,
-                            
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
