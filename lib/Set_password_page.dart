@@ -80,6 +80,10 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
+  // Extracted URL Parameters
+  String? _activeToken;
+  String? _activeOrgId;
+
   // Validation States
   bool _hasMinLength = false;
   bool _hasNumber = false;
@@ -89,8 +93,36 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
   @override
   void initState() {
     super.initState();
+    _extractParametersFromUrl();
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validatePassword);
+  }
+
+  /// دالة استخراج وتجهيز التوكين والـ OrgID لضمان بقائهما متوفرين
+  /// حتى مع الـ Refresh أو Hash Routing
+  void _extractParametersFromUrl() {
+    String? token = widget.token?.trim();
+    String? orgId = widget.orgId?.trim();
+
+    if (token == null || token.isEmpty) {
+      final currentUri = Uri.base;
+
+      if (currentUri.hasFragment && currentUri.fragment.isNotEmpty) {
+        final fragment = currentUri.fragment;
+        final formattedFragment =
+            fragment.startsWith('/') ? fragment : '/$fragment';
+        final fragmentUri = Uri.parse(formattedFragment);
+
+        token = fragmentUri.queryParameters['token']?.trim();
+        orgId ??= fragmentUri.queryParameters['orgId']?.trim();
+      } else {
+        token = currentUri.queryParameters['token']?.trim();
+        orgId ??= currentUri.queryParameters['orgId']?.trim();
+      }
+    }
+
+    _activeToken = token;
+    _activeOrgId = orgId;
   }
 
   void _validatePassword() {
@@ -118,17 +150,10 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
       );
       return;
     }
-    String tokenToUse = widget.token ?? '';
 
-    if (tokenToUse.isEmpty) {
-      final currentUri = Uri.base;
-      if (currentUri.hasFragment) {
-        final fragmentUri = Uri.parse(currentUri.fragment);
-        tokenToUse = fragmentUri.queryParameters['token'] ?? '';
-      } else {
-        tokenToUse = currentUri.queryParameters['token'] ?? '';
-      }
-    }
+    // التحقق النهائي من التوكين
+    final tokenToUse = _activeToken ?? '';
+
     if (tokenToUse.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

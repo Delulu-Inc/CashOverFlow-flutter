@@ -1,12 +1,10 @@
-import 'dart:html' as html;
-// import 'package:cash_overflow/Activate_plan_page.dart';
+import 'package:flutter/material.dart';
 import 'package:cash_overflow/Done_after_subscripe_page.dart';
 import 'package:cash_overflow/SignIn_page.dart';
 import 'package:cash_overflow/failed_payment.dart';
 import 'package:cash_overflow/landing_page.dart';
 import 'package:cash_overflow/plansubscribtion.dart';
 import 'package:cash_overflow/set_password_page.dart';
-import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,74 +13,102 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  /// دالة مساعدة معالجة لاستخراج الـ URI والـ Query Parameters
+  /// تضمن التعامل الصحيح مع الـ Hash Routing ومسارات GitHub Pages
+  Uri _getCleanUri(RouteSettings settings) {
+    final baseUri = Uri.base;
+
+    // 1. إذا كان التطبيق يعتمد على Hash Strategy (/#/set-password)
+    if (baseUri.hasFragment && baseUri.fragment.isNotEmpty) {
+      final fragment = baseUri.fragment;
+      final formattedFragment =
+          fragment.startsWith('/') ? fragment : '/$fragment';
+      return Uri.parse(formattedFragment);
+    }
+
+    // 2. إذا تم التوجيه عبر Navigator.pushNamed من داخل التطبيق
+    if (settings.name != null && settings.name != '/') {
+      return Uri.parse(settings.name!);
+    }
+
+    return baseUri;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',
       onGenerateRoute: (settings) {
-        final String rawRouteName = settings.name ?? '/';
-        
-        // استخراج الـ Path النظيف بدون query parameters
-        final Uri routeUri = Uri.parse(rawRouteName);
-        final String path = routeUri.path;
+        final Uri fullUri = _getCleanUri(settings);
 
-        // دالة مساعدة لقراءة الـ URI من الـ Hash أو الـ URL المباشر
-        Uri getFullUri() {
-          return Uri.parse(
-            html.window.location.hash.isNotEmpty
-                ? html.window.location.hash.substring(1)
-                : html.window.location.href,
-          );
+        // استخراج المسار الأساسي (Path) تنظيفه من أي بادئة خاصة بـ Base HREF
+        String path = fullUri.path;
+        if (path.contains('/CashOverFlow-flutter')) {
+          path = path.replaceAll('/CashOverFlow-flutter', '');
+        }
+        if (path.isEmpty) {
+          path = '/';
         }
 
-        // 1. مسار قبول الدعوة
+        // 1. مسار قبول الدعوة (Activate Plan)
         if (path.startsWith('/accept-invite')) {
-          final uri = getFullUri();
-          final String? inviteToken = uri.queryParameters['token'];
+          final String? inviteToken = fullUri.queryParameters['token']?.trim();
 
           return MaterialPageRoute(
+            settings: settings,
             builder: (context) => ActivatePlan(inviteToken: inviteToken),
           );
         }
 
-        // 2. مسار ضبط كلمة السر
+        // 2. مسار ضبط كلمة السر (Set Password)
         if (path.startsWith('/set-password')) {
-          final uri = getFullUri();
-          final String? inviteToken = uri.queryParameters['token'];
-          final String? orgId = uri.queryParameters['orgId'];
+          final String? inviteToken = fullUri.queryParameters['token']?.trim();
+          final String? orgId = fullUri.queryParameters['orgId']?.trim();
 
           return MaterialPageRoute(
-            builder: (context) => SetPasswordPage(token: inviteToken, orgId: orgId),
+            settings: settings,
+            builder: (context) =>
+                SetPasswordPage(token: inviteToken, orgId: orgId),
           );
         }
 
-        // 3. مسار نجاح الدفع (تعديل المقارنة للتعامل مع الـ query parameters)
+        // 3. مسار نجاح الدفع
         if (path.startsWith('/payment-success')) {
-          final uri = getFullUri();
-          final String? sessionId = uri.queryParameters['session_id'];
+          final String? sessionId =
+              fullUri.queryParameters['session_id']?.trim();
 
           return MaterialPageRoute(
-            builder: (context) => DoneAfterSubscripePage(sessionId: sessionId),
+            settings: settings,
+            builder: (context) =>
+                DoneAfterSubscripePage(sessionId: sessionId),
           );
         }
 
         // 4. مسار فشل الدفع
-        if (path.startsWith('/payment-failed') || path.startsWith('/payment-cancel')) {
-          final uri = getFullUri();
-          final String? errorMessage = uri.queryParameters['error'];
+        if (path.startsWith('/payment-failed') ||
+            path.startsWith('/payment-cancel')) {
+          final String? errorMessage = fullUri.queryParameters['error']?.trim();
 
           return MaterialPageRoute(
-            builder: (context) => PaymentFailedPage(errorMessage: errorMessage),
+            settings: settings,
+            builder: (context) =>
+                PaymentFailedPage(errorMessage: errorMessage),
           );
         }
 
         // 5. مسار تسجيل الدخول
         if (path == '/login') {
-          return MaterialPageRoute(builder: (context) => const SignInPage());
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => const SignInPage(),
+          );
         }
 
         // Default: Landing Page
-        return MaterialPageRoute(builder: (context) => const LandingPage());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const LandingPage(),
+        );
       },
       debugShowCheckedModeBanner: false,
       title: 'Cash Overflow',
