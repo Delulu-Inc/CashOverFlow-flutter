@@ -49127,7 +49127,7 @@ return A.i3(r,A.aD(r,new A.xv(new A.aqY(!0,!0,!0,h,p),B.OL,B.a1,!1,r,r,B.oR,!1,r
 abp(){var s=this
 return A.aP(A.b([B.abf,B.aR,s.uU(s.e,"Enter your first name","First Name",new A.aEP()),s.uU(s.f,"Enter your last name","Last Name",new A.aEQ()),s.Fv(s.r,"Enter your phone number",B.E1,"Phone",new A.aER())],t.p),B.w,B.j,B.k)},
 ab9(){var s=this
-return A.aP(A.b([B.aaN,B.aR,s.uU(s.x,"Enter your company name","Company Name",new A.aEL()),s.Fv(s.w,"Enter your company email",B.hW,"Company Email",new A.aEM()),s.uU(s.Q,"Enter your company size","Company Size",new A.aEN()),s.uU(s.z,"Enter your business type","Business Type",new A.aEO())],t.p),B.w,B.j,B.k)},
+return A.aP(A.b([B.aaN,B.aR,s.uU(s.x,"Enter your company name","Company Name",new A.aEL()),s.Fv(s.w,"Enter your company email",B.hW,"Company Email",new A.aEM()),s.uU(s.Q,"Enter your company size (e.g., 10-50)","Company Size",new A.aEN()),s.uU(s.z,"Enter your business type","Business Type",new A.aEO())],t.p),B.w,B.j,B.k)},
 Fv(a,b,c,d,e){var s=null,r=A.a7(d,s,s,s,B.E8,s,s),q=A.aH(153,B.ey.D()>>>16&255,B.ey.D()>>>8&255,B.ey.D()&255),p=A.a6(10),o=A.aH(46,B.f.D()>>>16&255,B.f.D()>>>8&255,B.f.D()&255),n=A.a6(10),m=A.a6(10),l=A.a6(10)
 return new A.aK(B.qS,A.aP(A.b([r,B.an,A.nH(B.kU,a,A.p3(s,s,s,B.eO,s,s,s,s,!0,new A.cq(4,p,new A.aA(o,1,B.t,-1)),s,new A.cq(4,m,B.kZ),s,s,s,q,!0,s,s,s,s,new A.cq(4,n,B.p6),new A.cq(4,l,B.fB),s,s,s,s,s,s,s,B.Eh,b,s,s,s,s,s,s,s,s,s,!0,!0,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s),c,s,!1,!1,B.Eg,e)],t.p),B.w,B.j,B.k),s)},
 uU(a,b,c,d){return this.Fv(a,b,B.cE,c,d)}}
@@ -49144,35 +49144,38 @@ A.aEV.prototype={
 $2(a,b){var s=this.a,r=s.abp(),q=s.ab9()
 s=t.p
 if(b.b<650)return A.aP(A.b([r,B.dx,q],s),B.q,B.j,B.k)
-else return A.b5(A.b([A.bN(r,1),B.a23,A.bN(q,1)],s),B.q,B.j,B.k,0,null,null)},
+else return A.b5(A.b([A.bN(r,1),B.a23,A.bN(q,1)],s),B.w,B.j,B.k,0,null,null)},
 $S:658}
 A.aEP.prototype={
-$1(a){var s=B.c.aV(a)
-if(s.length===0)return"Please enter your first name"
+$1(a){var s=B.c.aV(a),r=s.length
+if(r===0)return"Please enter your first name"
+if(r<2)return"First name must be at least 2 characters"
 return null},
 $S:13}
 A.aEQ.prototype={
-$1(a){var s=B.c.aV(a)
-if(s.length===0)return"Please enter your last name"
+$1(a){var s=B.c.aV(a),r=s.length
+if(r===0)return"Please enter your last name"
+if(r<2)return"Last name must be at least 2 characters"
 return null},
 $S:13}
 A.aER.prototype={
 $1(a){var s,r=B.c.aV(a)
 if(r.length===0)return"Please enter your phone number"
-s=A.bA("^[0-9+\\s\\-]{8,15}$",!0,!1)
-if(!s.b.test(r))return"Please enter a valid phone number"
+s=A.bA("^\\+?[0-9\\s\\-]{8,15}$",!0,!1)
+if(!s.b.test(r))return"Please enter a valid phone number (8-15 digits)"
 return null},
 $S:13}
 A.aEL.prototype={
-$1(a){var s=B.c.aV(a)
-if(s.length===0)return"Please enter your company name"
+$1(a){var s=B.c.aV(a),r=s.length
+if(r===0)return"Please enter your company name"
+if(r<2)return"Company name must be at least 2 characters"
 return null},
 $S:13}
 A.aEM.prototype={
 $1(a){var s,r=B.c.aV(a)
 if(r.length===0)return"Please enter your company email"
-s=A.bA("^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\\.[a-zA-Z]+",!0,!1)
-if(!s.b.test(r))return"Please enter a valid company email address"
+s=A.bA("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",!0,!1)
+if(!s.b.test(r))return"Please enter a valid email address (e.g. name@company.com)"
 return null},
 $S:13}
 A.aEN.prototype={
