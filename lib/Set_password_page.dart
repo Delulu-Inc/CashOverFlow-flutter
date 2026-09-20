@@ -45,11 +45,29 @@ class OnboardingService {
         body: jsonEncode(request.toJson()),
       );
 
+      // طباعة الاستجابة في الـ Console لمعاينة الـ Response الدقيق
+      debugPrint('Status Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Failed to set password');
+        String errorMessage = 'Failed to set password (${response.statusCode})';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData is Map<String, dynamic>) {
+            errorMessage = errorData['message'] ??
+                errorData['error'] ??
+                errorData['title'] ??
+                errorMessage;
+          }
+        } catch (_) {
+          // إذا لم تكن الاستجابة بتنسيق JSON
+          if (response.body.isNotEmpty) {
+            errorMessage = response.body;
+          }
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       rethrow;
@@ -99,7 +117,6 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
   }
 
   /// دالة استخراج وتجهيز التوكين والـ OrgID لضمان بقائهما متوفرين
-  /// حتى مع الـ Refresh أو Hash Routing
   void _extractParametersFromUrl() {
     String? token = widget.token?.trim();
     String? orgId = widget.orgId?.trim();
@@ -142,23 +159,26 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate() || !_isFormValid) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please satisfy all password requirements'),
           backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
 
-    // التحقق النهائي من التوكين
     final tokenToUse = _activeToken ?? '';
 
     if (tokenToUse.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Invalid or missing invitation token.'),
           backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -178,20 +198,24 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
       final success = await OnboardingService.acceptInvite(request);
 
       if (mounted && success) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password set successfully! Redirecting to login...'),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
           ),
         );
         Navigator.of(context).pushReplacementNamed('/login');
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
