@@ -21,23 +21,29 @@ class SubscriptionDetails {
 
   factory SubscriptionDetails.fromJson(Map<String, dynamic> json) {
     return SubscriptionDetails(
-      id: json['id'] ?? json['Id'] as String?,
-      organizationId: json['organizationId'] ??
-          json['organization_id'] ??
-          json['OrganizationId'] as String?,
-      subscriptionPlan: json['subscriptionPlan'] ??
-          json['subscription_plan'] ??
-          json['SubscriptionPlan'] as String?,
-      status: json['status'] ?? json['Status'] as String?,
-      startDate: json['startDate'] ??
-          json['start_date'] ??
-          json['StartDate'] as String?,
+      id: json['id']?.toString() ?? json['Id']?.toString(),
+      organizationId:
+          json['organizationId']?.toString() ??
+          json['organization_id']?.toString() ??
+          json['OrganizationId']?.toString(),
+      subscriptionPlan:
+          json['subscriptionPlan']?.toString() ??
+          json['subscription_plan']?.toString() ??
+          json['SubscriptionPlan']?.toString(),
+      status: json['status']?.toString() ?? json['Status']?.toString(),
+      startDate:
+          json['startDate']?.toString() ??
+          json['start_date']?.toString() ??
+          json['StartDate']?.toString(),
       endDate:
-          json['endDate'] ?? json['end_date'] ?? json['EndDate'] as String?,
-      cardBrand: json['cardBrand'] ??
-          json['card_brand'] ??
-          json['CardBrand'] as String?,
-      last4: json['last4'] ?? json['Last4'] as String?,
+          json['endDate']?.toString() ??
+          json['end_date']?.toString() ??
+          json['EndDate']?.toString(),
+      cardBrand:
+          json['cardBrand']?.toString() ??
+          json['card_brand']?.toString() ??
+          json['CardBrand']?.toString(),
+      last4: json['last4']?.toString() ?? json['Last4']?.toString(),
     );
   }
 
@@ -74,12 +80,14 @@ class BillingHistoryItem {
 
   factory BillingHistoryItem.fromJson(Map<String, dynamic> json) {
     return BillingHistoryItem(
-      transactionId: json['transaction_id'] ?? json['transactionId'] ?? '',
-      email: json['email'] ?? '',
-      plan: json['plan'] ?? '',
+      transactionId:
+          (json['transaction_id'] ?? json['transactionId'] ?? json['id'] ?? '')
+              .toString(),
+      email: (json['email'] ?? json['userEmail'] ?? 'N/A').toString(),
+      plan: (json['plan'] ?? json['subscriptionPlan'] ?? 'Pro').toString(),
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-      status: json['status'] ?? '',
-      date: json['date'] ?? '',
+      status: (json['status'] ?? 'Succeeded').toString(),
+      date: (json['date'] ?? json['createdAt'] ?? '').toString(),
     );
   }
 

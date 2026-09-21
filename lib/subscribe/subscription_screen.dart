@@ -1,9 +1,7 @@
-//import 'package:cash_overflow/widgets/Sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'subscription_models.dart';
 import 'subscription_service.dart';
-//import 'package:flutter_application_8/sidebar_widget.dart';
 
 class SubscriptionBillingScreen extends StatefulWidget {
   const SubscriptionBillingScreen({super.key});
@@ -81,90 +79,112 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Expanded(
-        child: Container(
-          color: const Color(0xFFE6E6E6),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Subscription & Billing',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF050505),
-                  ),
+      backgroundColor: const Color(0xFFE6E6E6),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Subscription & Billing',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF050505),
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Manage your subscription, payment method, and billing history.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF333333)),
-                ),
-                const SizedBox(height: 20),
-      
-                // Subscription Plan
-                FutureBuilder<SubscriptionDetails>(
-                  future: _subscriptionFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Card(
-                        child: SizedBox(
-                          height: 154,
-                          child: Center(child: CircularProgressIndicator()),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Manage your subscription, payment method, and billing history.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF333333)),
+              ),
+              const SizedBox(height: 20),
+
+              // Subscription Plan
+              FutureBuilder<SubscriptionDetails>(
+                future: _subscriptionFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Card(
+                      child: SizedBox(
+                        height: 154,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Error loading subscription: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.red),
                         ),
-                      );
-                    }
-                    final data = snapshot.data;
-                    if (data == null) return const SizedBox.shrink();
-                    return _buildSubscriptionPlanCard(data);
-                  },
-                ),
-      
-                const SizedBox(height: 16),
-      
-                // Payment Method
-                FutureBuilder<SubscriptionDetails>(
-                  future: _subscriptionFuture,
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const SizedBox.shrink();
-                    return _buildPaymentMethodCard(snapshot.data!);
-                  },
-                ),
-      
-                const SizedBox(height: 16),
-      
-                // Billing History
-                FutureBuilder<List<BillingHistoryItem>>(
-                  future: _billingHistoryFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Card(
-                        child: SizedBox(
-                          height: 200,
-                          child: Center(child: CircularProgressIndicator()),
+                      ),
+                    );
+                  }
+                  final data = snapshot.data;
+                  if (data == null) return const SizedBox.shrink();
+                  return _buildSubscriptionPlanCard(data);
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // Payment Method
+              FutureBuilder<SubscriptionDetails>(
+                future: _subscriptionFuture,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox.shrink();
+                  return _buildPaymentMethodCard(snapshot.data!);
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // Billing History
+              FutureBuilder<List<BillingHistoryItem>>(
+                future: _billingHistoryFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Card(
+                      child: SizedBox(
+                        height: 200,
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Error loading billing history: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.red),
                         ),
-                      );
-                    }
-                    final history = snapshot.data ?? [];
-                    return _buildBillingHistoryCard(history);
-                  },
-                ),
-              ],
-            ),
+                      ),
+                    );
+                  }
+                  final history = snapshot.data ?? [];
+                  return _buildBillingHistoryCard(history);
+                },
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // --- Sub-widgets ---
-
   Widget _buildSubscriptionPlanCard(SubscriptionDetails details) {
     final dateFormat = DateFormat('MMMM d, yyyy');
+    DateTime? renewDate;
+    if (details.startDate != null && details.startDate!.isNotEmpty) {
+      final parsed = DateTime.tryParse(details.startDate!);
+      if (parsed != null) {
+        renewDate = DateTime(parsed.year + 1, parsed.month, parsed.day);
+      }
+    }
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -190,18 +210,20 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      "Annual Plan",
+                      "${details.subscriptionPlan ?? 'Pro'} Plan",
                       style: const TextStyle(
-                          color: Color(0xFF4D4D4D), fontSize: 12),
+                        color: Color(0xFF4D4D4D),
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       textBaseline: TextBaseline.alphabetic,
                       crossAxisAlignment: CrossAxisAlignment.baseline,
-                      children: [
+                      children: const [
                         Text(
                           "\$499",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF000000),
@@ -209,32 +231,21 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                         ),
                         Text(
                           ' /year',
-                          style: const TextStyle(
-                              color: Color(0xFF808080), fontSize: 14),
+                          style: TextStyle(
+                            color: Color(0xFF808080),
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Builder(
-                      builder: (context) {
-                        DateTime? renewDate;
-                        if (details.startDate != null &&
-                            details.startDate!.isNotEmpty) {
-                          final parsed = DateTime.tryParse(details.startDate!);
-                          if (parsed != null) {
-                            renewDate = DateTime(
-                                parsed.year + 1, parsed.month, parsed.day);
-                          }
-                        }
-                        return Text(
-                          'Renews on ${renewDate != null ? dateFormat.format(renewDate) : 'N/A'}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF666666),
-                          ),
-                        );
-                      },
-                    )
+                    Text(
+                      'Renews on ${renewDate != null ? dateFormat.format(renewDate) : 'N/A'}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF666666),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -251,116 +262,11 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF1D4ED8),
-                            size: 16,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Cash-flow forecasting',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF050505),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF1D4ED8),
-                            size: 16,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Risk detection with explanations',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF050505),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF1D4ED8),
-                            size: 16,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'AI-powered recommendations',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF050505),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF1D4ED8),
-                            size: 16,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'What-if simulations',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF050505),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF1D4ED8),
-                            size: 16,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Role-based permissions',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF050505),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _FeatureItem(text: 'Cash-flow forecasting'),
+                    _FeatureItem(text: 'Risk detection with explanations'),
+                    _FeatureItem(text: 'AI-powered recommendations'),
+                    _FeatureItem(text: 'What-if simulations'),
+                    _FeatureItem(text: 'Role-based permissions'),
                   ],
                 ),
               ),
@@ -422,7 +328,7 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                             ),
                           ),
                           Text(
-                            '•••• •••• •••• ${details.last4}',
+                            '•••• •••• •••• ${details.last4 ?? "----"}',
                             style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFF000000),
@@ -433,10 +339,8 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                     ],
                   ),
                   OutlinedButton.icon(
-                    onPressed: () => _showUpdatePaymentModal(
-                      context,
-                      details.last4 ?? '',
-                    ),
+                    onPressed: () =>
+                        _showUpdatePaymentModal(context, details.last4 ?? ''),
                     icon: const Icon(
                       Icons.credit_card,
                       size: 15,
@@ -452,7 +356,9 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                       side: const BorderSide(color: Color(0xFF15389B)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -528,49 +434,72 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                         children: [
                           Padding(
                             padding: EdgeInsets.all(12.0),
-                            child: Text('Transaction ID',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A74))),
+                            child: Text(
+                              'Transaction ID',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF102A74),
+                              ),
+                            ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12.0),
-                            child: Text('Email',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A74))),
+                            child: Text(
+                              'Email',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF102A74),
+                              ),
+                            ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12.0),
-                            child: Text('Plan',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A74))),
+                            child: Text(
+                              'Plan',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF102A74),
+                              ),
+                            ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12.0),
-                            child: Text('Amount',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A74))),
+                            child: Text(
+                              'Amount',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF102A74),
+                              ),
+                            ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12.0),
-                            child: Text('Status',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A74))),
+                            child: Text(
+                              'Status',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF102A74),
+                              ),
+                            ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12.0),
-                            child: Text('Date',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A74))),
+                            child: Text(
+                              'Date',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF102A74),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                       ...history.map((item) {
+                        DateTime? parsedDate;
+                        if (item.date.isNotEmpty) {
+                          parsedDate = DateTime.tryParse(item.date);
+                        }
+
                         return TableRow(
                           decoration: const BoxDecoration(
                             color: Color(0xFFF6F6F6),
@@ -581,36 +510,52 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: Text(item.transactionId,
-                                  style: const TextStyle(
-                                      color: Color(0xFF1A1A1A))),
+                              child: Text(
+                                item.transactionId,
+                                style: const TextStyle(
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: Text(item.email,
-                                  style: const TextStyle(
-                                      color: Color(0xFF1A1A1A))),
+                              child: Text(
+                                item.email,
+                                style: const TextStyle(
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: Text(item.plan,
-                                  style: const TextStyle(
-                                      color: Color(0xFF1A1A1A))),
+                              child: Text(
+                                item.plan,
+                                style: const TextStyle(
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(12.0),
-                              child: Text('\$${item.amount.toInt()}',
-                                  style: const TextStyle(
-                                      color: Color(0xFF1A1A1A))),
+                              child: Text(
+                                '\$${item.amount.toInt()}',
+                                style: const TextStyle(
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12.0, vertical: 10),
+                                horizontal: 12.0,
+                                vertical: 10,
+                              ),
                               child: Align(
                                 alignment: Alignment.centerLeft,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 4),
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(12),
@@ -628,14 +573,14 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                               ),
                             ),
                             Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Text(
-                                  item.date.isNotEmpty
-                                      ? dateFormat
-                                          .format(DateTime.parse(item.date))
-                                      : '',
-                                  style: const TextStyle(fontSize: 12),
-                                )),
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                parsedDate != null
+                                    ? dateFormat.format(parsedDate)
+                                    : item.date,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
                           ],
                         );
                       }),
@@ -649,16 +594,12 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
     );
   }
 
-  // --- Modals ---
-
   void _showSuccessModal(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFFFCFCFC),
-          surfaceTintColor: Colors.transparent,
-          contentPadding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -680,10 +621,7 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   'Your new card will be used for your next renewal.',
-                  style: TextStyle(
-                    color: Color(0xFF666666),
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: Color(0xFF666666), fontSize: 16),
                 ),
                 const SizedBox(height: 24),
                 Align(
@@ -730,8 +668,9 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
       builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFFFCFCFC),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -758,73 +697,65 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Cardholder Name',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4D4D4D))),
+                  const Text(
+                    'Cardholder Name',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF4D4D4D)),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _nameController,
-                    style:
-                        const TextStyle(fontSize: 13, color: Color(0xFF1A1A1A)),
                     decoration: _inputDecoration('Enter cardholder name'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter cardholder name';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Please enter cardholder name'
+                        : null,
                   ),
                   const SizedBox(height: 14),
-                  const Text('Card Number',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4D4D4D))),
+                  const Text(
+                    'Card Number',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF4D4D4D)),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _cardController,
                     keyboardType: TextInputType.number,
                     maxLength: 16,
-                    style:
-                        const TextStyle(fontSize: 13, color: Color(0xFF1A1A1A)),
-                    decoration: _inputDecoration('Enter 16-digit card number')
-                        .copyWith(counterText: ''),
+                    decoration: _inputDecoration(
+                      'Enter 16-digit card number',
+                    ).copyWith(counterText: ''),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter card number';
                       }
-                      final cleanCard = value.replaceAll(RegExp(r'\s+'), '');
-                      if (!RegExp(r'^\d+$').hasMatch(cleanCard)) {
-                        return 'Card number must contain digits only';
-                      }
-                      if (cleanCard.length < 12 || cleanCard.length > 16) {
-                        return 'Card number must be between 12 and 16 digits';
-                      }
-                      return null;
+                      final clean = value.replaceAll(RegExp(r'\s+'), '');
+                      return (clean.length < 12 || clean.length > 16)
+                          ? 'Card number must be 12-16 digits'
+                          : null;
                     },
                   ),
                   const SizedBox(height: 14),
-                  const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('CVC',
-                          style: TextStyle(
-                              fontSize: 12, color: Color(0xFF4D4D4D))),
+                      const Text(
+                        'CVC',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF4D4D4D),
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _cvcController,
                         keyboardType: TextInputType.number,
                         maxLength: 4,
-                        style: const TextStyle(
-                            fontSize: 13, color: Color(0xFF1A1A1A)),
-                        decoration:
-                            _inputDecoration('123').copyWith(counterText: ''),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Enter CVC';
-                          }
-                          if (!RegExp(r'^\d{3,4}$').hasMatch(value.trim())) {
-                            return '3 or 4 digits';
-                          }
-                          return null;
-                        },
+                        decoration: _inputDecoration(
+                          '123',
+                        ).copyWith(counterText: ''),
+                        validator: (value) =>
+                            (value == null ||
+                                !RegExp(r'^\d{3,4}$').hasMatch(value.trim()))
+                            ? 'Enter 3 or 4 digits'
+                            : null,
                       ),
                     ],
                   ),
@@ -835,14 +766,7 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Color(0xFF4D4D4D),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -865,7 +789,7 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                       cvc: _cvcController.text.trim(),
                     );
                   } catch (e) {
-                    debugPrint('Error updating payment method: $e');
+                    debugPrint('Error: $e');
                   }
 
                   if (!outerContext.mounted) return;
@@ -877,8 +801,7 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
                   } else {
                     ScaffoldMessenger.of(outerContext).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                            'Failed to update payment method. Please try again.'),
+                        content: Text('Failed to update payment method.'),
                         backgroundColor: Colors.redAccent,
                       ),
                     );
@@ -887,25 +810,39 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A46C2),
-                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
               ),
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  color: Color(0xFFFCFCFC),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: const Text('Save', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _FeatureItem extends StatelessWidget {
+  final String text;
+  const _FeatureItem({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Color(0xFF1D4ED8), size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF050505)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
-import 'subscription_models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'subscription_models.dart';
 
 class SubscriptionService {
   static const String baseUrl = 'https://cashoverflow-api.runasp.net/v1';
@@ -33,12 +33,13 @@ class SubscriptionService {
       final headers = await _getHeaders();
       final response = await http.get(url, headers: headers);
 
-      log('GET $url');
-      log('Status: ${response.statusCode}');
-      log('Body: ${response.body}');
+      log('GET $url -> Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        return SubscriptionDetails.fromJson(jsonDecode(response.body));
+        final dynamic decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return SubscriptionDetails.fromJson(decoded);
+        }
       }
 
       throw Exception(
@@ -57,13 +58,29 @@ class SubscriptionService {
       final headers = await _getHeaders();
       final response = await http.get(url, headers: headers);
 
-      log('GET $url');
-      log('Status: ${response.statusCode}');
-      log('Body: ${response.body}');
+      log('GET $url -> Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => BillingHistoryItem.fromJson(json)).toList();
+        final dynamic decoded = jsonDecode(response.body);
+        List<dynamic> list = [];
+
+        if (decoded is List) {
+          list = decoded;
+        } else if (decoded is Map<String, dynamic>) {
+          final nested =
+              decoded['data'] ??
+              decoded['billingHistory'] ??
+              decoded['items'] ??
+              decoded['payments'];
+          if (nested is List) {
+            list = nested;
+          }
+        }
+
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map((json) => BillingHistoryItem.fromJson(json))
+            .toList();
       }
 
       throw Exception(
@@ -100,10 +117,6 @@ class SubscriptionService {
         headers: headers,
         body: jsonEncode({'cardBrand': cardBrand, 'last4': last4}),
       );
-
-      log('PUT $url');
-      log('Status: ${response.statusCode}');
-      log('Body: ${response.body}');
 
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
