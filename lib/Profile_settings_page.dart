@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:cash_overflow/widgets/Sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,8 +19,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   bool _isLoadingPersonal = false;
   bool _isLoadingSecurity = false;
 
-  // Password Visibility States
-  bool _obscureCurrentPassword = true;
+  // Password Visibility States (للباسورد الجديد والتأكيد فقط)
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -30,7 +28,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  String? _avatarUrl;
 
   // Security Controllers
   final TextEditingController _currentPasswordController =
@@ -39,6 +36,10 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+
+  // رابط صورة استاتيكي ثابت
+  static const String _staticAvatarUrl =
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop';
 
   @override
   void initState() {
@@ -98,7 +99,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           _positionController.text = data['role'] ?? '';
           _idController.text =
               data['companyId'] ?? data['organizationId'] ?? '';
-          _avatarUrl = data['avatarUrl'];
         });
       } else {
         _showSnackBar(
@@ -138,7 +138,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         body: jsonEncode({
           'firstName': _firstNameController.text.trim(),
           'lastName': _lastNameController.text.trim(),
-          'avatarUrl': _avatarUrl,
+          'avatarUrl': _staticAvatarUrl,
         }),
       );
 
@@ -218,26 +218,19 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE2E8F0),
-      body: Row(
-        children: [
-          const SidebarWidget(currentRoute: 'Profile Settings'),
-          Expanded(
-            child: _isLoadingFetch
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      children: [
-                        _buildPersonalInformationCard(),
-                        const SizedBox(height: 24),
-                        _buildSecurityInformationCard(),
-                      ],
-                    ),
-                  ),
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFFE6E6E6),
+      body: _isLoadingFetch
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                children: [
+                  _buildPersonalInformationCard(),
+                  const SizedBox(height: 24),
+                  _buildSecurityInformationCard(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -256,32 +249,10 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           children: [
             Row(
               children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage(
-                        _avatarUrl ??
-                            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop',
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1D4ED8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit_outlined,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
+                // صورة استاتيكية فقط بدون زر التعديل
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundImage: NetworkImage(_staticAvatarUrl),
                 ),
                 const SizedBox(width: 20),
                 Column(
@@ -426,12 +397,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     label: 'Current Password',
                     controller: _currentPasswordController,
                     isPassword: true,
-                    obscureText: _obscureCurrentPassword,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _obscureCurrentPassword = !_obscureCurrentPassword;
-                      });
-                    },
+                    obscureText: true, // مخفية دائماً بدون أيقونة عين
                     validator: (val) => val == null || val.isEmpty
                         ? 'Enter current password'
                         : null,
@@ -589,7 +555,8 @@ class CustomInputField extends StatelessWidget {
             fillColor: readOnly
                 ? const Color(0xFFF8FAFC)
                 : const Color(0xFFFAFAFA),
-            suffixIcon: isPassword
+            // إظهار زر العين فقط إذا كانت الخافية تدعم ذلك (onToggleVisibility ليست null)
+            suffixIcon: isPassword && onToggleVisibility != null
                 ? IconButton(
                     icon: Icon(
                       obscureText

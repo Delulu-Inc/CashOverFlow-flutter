@@ -1,4 +1,4 @@
-import 'package:cash_overflow/widgets/Sidebar.dart';
+//import 'package:cash_overflow/widgets/Sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'subscription_models.dart';
@@ -81,90 +81,82 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SidebarWidget(
-            currentRoute: "Subscription",
-          ),
-          Expanded(
-            child: Container(
-              color: const Color(0xFFE6E6E6),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Subscription & Billing',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF050505),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Manage your subscription, payment method, and billing history.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF333333)),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Subscription Plan
-                    FutureBuilder<SubscriptionDetails>(
-                      future: _subscriptionFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Card(
-                            child: SizedBox(
-                              height: 154,
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                          );
-                        }
-                        final data = snapshot.data;
-                        if (data == null) return const SizedBox.shrink();
-                        return _buildSubscriptionPlanCard(data);
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Payment Method
-                    FutureBuilder<SubscriptionDetails>(
-                      future: _subscriptionFuture,
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const SizedBox.shrink();
-                        return _buildPaymentMethodCard(snapshot.data!);
-                      },
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Billing History
-                    FutureBuilder<List<BillingHistoryItem>>(
-                      future: _billingHistoryFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Card(
-                            child: SizedBox(
-                              height: 200,
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                          );
-                        }
-                        final history = snapshot.data ?? [];
-                        return _buildBillingHistoryCard(history);
-                      },
-                    ),
-                  ],
+      body: Expanded(
+        child: Container(
+          color: const Color(0xFFE6E6E6),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Subscription & Billing',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF050505),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Manage your subscription, payment method, and billing history.',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF333333)),
+                ),
+                const SizedBox(height: 20),
+      
+                // Subscription Plan
+                FutureBuilder<SubscriptionDetails>(
+                  future: _subscriptionFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Card(
+                        child: SizedBox(
+                          height: 154,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      );
+                    }
+                    final data = snapshot.data;
+                    if (data == null) return const SizedBox.shrink();
+                    return _buildSubscriptionPlanCard(data);
+                  },
+                ),
+      
+                const SizedBox(height: 16),
+      
+                // Payment Method
+                FutureBuilder<SubscriptionDetails>(
+                  future: _subscriptionFuture,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    return _buildPaymentMethodCard(snapshot.data!);
+                  },
+                ),
+      
+                const SizedBox(height: 16),
+      
+                // Billing History
+                FutureBuilder<List<BillingHistoryItem>>(
+                  future: _billingHistoryFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Card(
+                        child: SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      );
+                    }
+                    final history = snapshot.data ?? [];
+                    return _buildBillingHistoryCard(history);
+                  },
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
