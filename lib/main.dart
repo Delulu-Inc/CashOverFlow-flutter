@@ -154,6 +154,13 @@ class MyApp extends StatelessWidget {
           );
         }
 
+        if (path.startsWith('/admin-dashboard')) {
+          return _page(
+            settings,
+            const DemoRequestsManagementScreen(),
+          );
+        }
+
         // ======================================================
         // 3. DASHBOARD
         // ======================================================
@@ -278,6 +285,8 @@ class MyApp extends StatelessWidget {
             ),
           );
         }
+
+        
 
         // ======================================================
         // UNKNOWN ROUTE
