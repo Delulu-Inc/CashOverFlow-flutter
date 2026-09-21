@@ -1,7 +1,5 @@
 import 'dart:convert';
-//import 'package:cash_overflow/widgets/Sidebar.dart';
 import 'package:flutter/material.dart';
-//import 'package:flutter_application_8/sidebar_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -71,20 +69,21 @@ class ChatResponseDto {
   ChatResponseDto({required this.reply, required this.timestamp});
 
   factory ChatResponseDto.fromJson(Map<String, dynamic> json) {
-    final String extractedReply =
+    final dynamic rawReply =
         json['reply'] ??
         json['message'] ??
         json['text'] ??
         json['response'] ??
         json['data'] ??
-        json['answer'] ??
-        '';
+        json['answer'];
+
+    final String extractedReply = rawReply?.toString() ?? '';
 
     return ChatResponseDto(
       reply: extractedReply.trim().isNotEmpty
           ? extractedReply
           : "Received empty response from server.",
-      timestamp: json['timestamp'] ?? '',
+      timestamp: json['timestamp']?.toString() ?? '',
     );
   }
 }
@@ -150,9 +149,9 @@ class ReplaySimulationResultDto {
 
   factory ReplaySimulationResultDto.fromJson(Map<String, dynamic> json) {
     return ReplaySimulationResultDto(
-      companyId: json['companyId'],
-      startDate: json['startDate'],
-      endDate: json['endDate'],
+      companyId: json['companyId']?.toString(),
+      startDate: json['startDate']?.toString(),
+      endDate: json['endDate']?.toString(),
       startingBalance: (json['startingBalance'] as num?)?.toDouble(),
       endingBalance: (json['endingBalance'] as num?)?.toDouble(),
       totalHistoricalInflow: (json['totalHistoricalInflow'] as num?)
@@ -160,8 +159,9 @@ class ReplaySimulationResultDto {
       totalHistoricalOutflow: (json['totalHistoricalOutflow'] as num?)
           ?.toDouble(),
       lowestCashPoint: (json['lowestCashPoint'] as num?)?.toDouble(),
-      dailyTimeline: json['dailyTimeline'] != null
+      dailyTimeline: json['dailyTimeline'] is List
           ? (json['dailyTimeline'] as List)
+                .whereType<Map<String, dynamic>>()
                 .map((i) => DailyTimelineDto.fromJson(i))
                 .toList()
           : null,
@@ -186,7 +186,7 @@ class DailyTimelineDto {
 
   factory DailyTimelineDto.fromJson(Map<String, dynamic> json) {
     return DailyTimelineDto(
-      date: json['date'],
+      date: json['date']?.toString(),
       openingBalance: (json['openingBalance'] as num?)?.toDouble(),
       totalInflow: (json['totalInflow'] as num?)?.toDouble(),
       totalOutflow: (json['totalOutflow'] as num?)?.toDouble(),
@@ -235,8 +235,9 @@ class ApiService {
         "Server Raw Response [${response.statusCode}]: ${response.body}",
       );
 
+      final dynamic decoded = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final dynamic decoded = jsonDecode(response.body);
         if (decoded is Map<String, dynamic>) {
           return ChatResponseDto.fromJson(decoded);
         } else if (decoded is String) {
@@ -247,13 +248,16 @@ class ApiService {
         }
       }
 
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      final errorMessage =
-          data['reply'] ??
-          data['detail'] ??
-          data['title'] ??
-          data['message'] ??
-          'Error ${response.statusCode}';
+      String errorMessage = 'Error ${response.statusCode}';
+      if (decoded is Map<String, dynamic>) {
+        errorMessage =
+            decoded['reply'] ??
+            decoded['detail'] ??
+            decoded['title'] ??
+            decoded['message'] ??
+            errorMessage;
+      }
+
       return ChatResponseDto(
         reply: "[Server Error ${response.statusCode}]: $errorMessage",
         timestamp: DateTime.now().toIso8601String(),
@@ -280,7 +284,10 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return ReplaySimulationResultDto.fromJson(jsonDecode(response.body));
+        final dynamic decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return ReplaySimulationResultDto.fromJson(decoded);
+        }
       } else {
         debugPrint('Error status code: ${response.statusCode}');
       }
@@ -386,7 +393,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE6E6E6),
-      body: Expanded(
+      // Direct child is SafeArea / Padding, NOT an Expanded widget
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -419,10 +427,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     SizedBox(height: 4),
                     Text(
                       "Ask anything about your cash flow, simulate what-if scenarios, view forecasts, or weigh a decision.",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                      ),
+                      style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
                     ),
                   ],
                 ),
@@ -442,9 +447,7 @@ class _ChatScreenState extends State<ChatScreen> {
               if (_isLoading)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: CircularProgressIndicator(
-                    color: Color(0xFF1D4ED8),
-                  ),
+                  child: CircularProgressIndicator(color: Color(0xFF1D4ED8)),
                 ),
               const SizedBox(height: 12),
               _buildInputArea(),
