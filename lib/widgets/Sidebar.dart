@@ -1,18 +1,19 @@
 import 'dart:convert';
-import 'package:cash_overflow/ai_support.dart';
-import 'package:cash_overflow/subscribe/subscription_screen.dart';
+
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cash_overflow/Dashboard_page.dart';
-import 'package:cash_overflow/Profile_settings_page.dart';
-import 'package:cash_overflow/SignIn_page.dart';
-import 'package:flutter/material.dart';
-import 'package:cash_overflow/TeamManagementPage.dart';
 
 class SidebarWidget extends StatefulWidget {
   final String currentRoute;
 
-  const SidebarWidget({super.key, this.currentRoute = 'Profile Settings'});
+  final ValueChanged<String>? onNavigate;
+
+  const SidebarWidget({
+    super.key,
+    this.currentRoute = 'Profile Settings',
+    this.onNavigate,
+  });
 
   @override
   State<SidebarWidget> createState() => _SidebarWidgetState();
@@ -21,7 +22,6 @@ class SidebarWidget extends StatefulWidget {
 class _SidebarWidgetState extends State<SidebarWidget> {
   late String _activeItem;
 
-  // متغيرة لتخزين بيانات المستخدم
   String _firstuserName = '';
   String _lastuserName = '';
   String _userRole = '';
@@ -30,29 +30,48 @@ class _SidebarWidgetState extends State<SidebarWidget> {
   @override
   void initState() {
     super.initState();
+
     _activeItem = widget.currentRoute;
+
     _fetchUserData();
   }
 
-  // دالة لجلب البيانات من الـ API
+  @override
+  void didUpdateWidget(covariant SidebarWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.currentRoute != widget.currentRoute) {
+      setState(() {
+        _activeItem = widget.currentRoute;
+      });
+    }
+  }
+
   Future<void> _fetchUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      // استخراج التوكين (تأكد من مطابقة الاسم Key الذي استخدمته عند الحفظ)
-      final token = prefs.getString('auth_token') ?? prefs.getString('token');
+
+      final token =
+          prefs.getString('auth_token') ??
+          prefs.getString('token');
 
       if (token == null) {
+        if (!mounted) return;
+
         setState(() {
           _firstuserName = 'Guest';
           _lastuserName = '';
           _userRole = '';
           _isLoadingUser = false;
         });
+
         return;
       }
 
       final response = await http.get(
-        Uri.parse('https://cashoverflow-api.runasp.net/v1/me'),
+        Uri.parse(
+          'https://cashoverflow-api.runasp.net/v1/me',
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -61,14 +80,22 @@ class _SidebarWidgetState extends State<SidebarWidget> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+
+        if (!mounted) return;
+
         setState(() {
-          // قم بتعديل المسميات حسب مفاتيح الـ JSON القادمة من الـ API لديك
           _firstuserName = data['firstName'] ?? 'User';
           _lastuserName = data['lastName'] ?? '';
-          _userRole = data['role'] ?? data['jobTitle'] ?? 'Member';
+          _userRole =
+              data['role'] ??
+              data['jobTitle'] ??
+              'Member';
+
           _isLoadingUser = false;
         });
       } else {
+        if (!mounted) return;
+
         setState(() {
           _firstuserName = 'User';
           _lastuserName = '';
@@ -77,6 +104,8 @@ class _SidebarWidgetState extends State<SidebarWidget> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _firstuserName = 'User';
         _lastuserName = '';
@@ -84,6 +113,20 @@ class _SidebarWidgetState extends State<SidebarWidget> {
         _isLoadingUser = false;
       });
     }
+  }
+
+  void _navigate(
+    String itemName,
+    String route,
+  ) {
+    debugPrint('CLICKED: $itemName');
+    debugPrint('ROUTE: $route');
+
+    setState(() {
+      _activeItem = itemName;
+    });
+
+    widget.onNavigate?.call(route);
   }
 
   @override
@@ -94,13 +137,18 @@ class _SidebarWidgetState extends State<SidebarWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Logo Area
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Row(
               children: [
-                Image.asset('assets/img/logo.png', width: 26, height: 26),
+                Image.asset(
+                  'assets/img/logo.png',
+                  width: 26,
+                  height: 26,
+                ),
+
                 const SizedBox(width: 12),
+
                 const Text(
                   'Cash Overflow',
                   style: TextStyle(
@@ -112,102 +160,105 @@ class _SidebarWidgetState extends State<SidebarWidget> {
               ],
             ),
           ),
+
           const SizedBox(height: 12),
 
-          // Dashboard
+          // DASHBOARD
           _buildNavItem(
             Icons.dashboard_rounded,
             'Dashboard',
             onTap: () {
-              setState(() => _activeItem = 'Dashboard');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const DashboardPage()),
+              _navigate(
+                'Dashboard',
+                '/dashboard',
               );
             },
           ),
 
-          // AI Support
+          // AI SUPPORT
           _buildNavItem(
             Icons.auto_awesome,
             'AI Support',
             onTap: () {
-              setState(() => _activeItem = 'AI Support');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const ChatScreen()),
+              _navigate(
+                'AI Support',
+                '/ai-support',
               );
             },
           ),
 
-          // Team Management
+          // TEAM MANAGEMENT
           _buildNavItem(
             Icons.group_outlined,
             'Team Management',
             onTap: () {
-              setState(() => _activeItem = 'Team Management');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const TeamManagementPage()),
+              _navigate(
+                'Team Management',
+                '/team-management',
               );
             },
           ),
 
-          // Subscription
+          // SUBSCRIPTION
           _buildNavItem(
             Icons.credit_card,
             'Subscription',
             onTap: () {
-              setState(() => _activeItem = 'Subscription');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const SubscriptionBillingScreen()),
+              _navigate(
+                'Subscription',
+                '/subscription',
               );
             },
           ),
 
-          // Profile Settings
+          // PROFILE SETTINGS
           _buildNavItem(
             Icons.settings_outlined,
             'Profile Settings',
             onTap: () {
-              setState(() => _activeItem = 'Profile Settings');
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileSettingsPage(),
-                ),
+              _navigate(
+                'Profile Settings',
+                '/profile-settings',
               );
             },
           ),
 
           const Spacer(),
-          const Divider(color: Color(0xFF1E293B), height: 1),
 
-          // Log Out
+          const Divider(
+            color: Color(0xFF1E293B),
+            height: 1,
+          ),
+
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 8.0,
+            ),
             child: _buildNavItem(
               Icons.logout_rounded,
               'Log out',
               isLogout: true,
               onTap: () async {
-                // مسح البيانات عند تسجيل الخروج
-                final prefs = await SharedPreferences.getInstance();
+                final prefs =
+                    await SharedPreferences.getInstance();
+
                 await prefs.clear();
 
                 if (!mounted) return;
-                Navigator.pushReplacement(
+
+                Navigator.pushReplacementNamed(
                   context,
-                  MaterialPageRoute(builder: (context) => const SignInPage()),
+                  '/login',
                 );
               },
             ),
           ),
 
-          const Divider(color: Color(0xFF1E293B), height: 1),
+          const Divider(
+            color: Color(0xFF1E293B),
+            height: 1,
+          ),
 
-          // User Info Section
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Row(
@@ -218,9 +269,9 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop',
                   ),
                 ),
+
                 const SizedBox(width: 12),
 
-                // الجزء المطلوب لجلب البيانات ديناميكياً
                 Expanded(
                   child: _isLoadingUser
                       ? const SizedBox(
@@ -232,43 +283,50 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                           ),
                         )
                       : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  _firstuserName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+                                Flexible(
+                                  child: Text(
+                                    _firstuserName,
+                                    overflow:
+                                        TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                                Text(
-                                  ' ',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  _lastuserName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+
+                                const SizedBox(width: 4),
+
+                                Flexible(
+                                  child: Text(
+                                    _lastuserName,
+                                    overflow:
+                                        TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
+
                             if (_userRole.isNotEmpty) ...[
                               const SizedBox(height: 2),
+
                               Text(
                                 _userRole,
-                                overflow: TextOverflow.ellipsis,
+                                overflow:
+                                    TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 11,
@@ -292,12 +350,18 @@ class _SidebarWidgetState extends State<SidebarWidget> {
     bool isLogout = false,
     VoidCallback? onTap,
   }) {
-    final bool isActive = _activeItem == title;
+    final bool isActive =
+        _activeItem == title;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 4,
+      ),
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF1E293B) : Colors.transparent,
+        color: isActive
+            ? const Color(0xFF1E293B)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Material(
@@ -306,25 +370,36 @@ class _SidebarWidgetState extends State<SidebarWidget> {
           borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             child: Row(
               children: [
                 Icon(
                   icon,
                   color: isLogout
                       ? Colors.redAccent
-                      : (isActive ? Colors.blueAccent : Colors.grey[400]),
+                      : (isActive
+                          ? Colors.blueAccent
+                          : Colors.grey[400]),
                   size: 20,
                 ),
+
                 const SizedBox(width: 12),
+
                 Text(
                   title,
                   style: TextStyle(
                     color: isLogout
                         ? Colors.redAccent
-                        : (isActive ? Colors.white : Colors.grey[400]),
+                        : (isActive
+                            ? Colors.white
+                            : Colors.grey[400]),
                     fontSize: 14,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: isActive
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
               ],
