@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:cash_overflow/InviteMemberDialog.dart';
-//import 'package:cash_overflow/widgets/Sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,9 +20,10 @@ class TeamMember {
   factory TeamMember.fromJson(Map<String, dynamic> json) {
     return TeamMember(
       id: json['id']?.toString() ?? '',
-      name: json['name'] ?? json['fullName'] ?? 'N/A',
-      email: json['email'] ?? 'N/A',
-      position: json['position'] ?? json['role'] ?? 'N/A',
+      name: json['name']?.toString() ?? json['fullName']?.toString() ?? 'N/A',
+      email: json['email']?.toString() ?? 'N/A',
+      position:
+          json['position']?.toString() ?? json['role']?.toString() ?? 'N/A',
     );
   }
 }
@@ -45,17 +45,13 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
   }
 
   Future<List<TeamMember>> fetchTeamMembers() async {
-    // 1. جلب التوكين من SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString(
-      'auth_token',
-    ); // تأكد من اسم المفتاح المتطابق لديك (مثل token)
+    final String? token = prefs.getString('auth_token');
 
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token not found. Please log in again.');
     }
 
-    // 2. إرسال طلب GET مع إرفاق الـ Authorization Header
     final response = await http.get(
       Uri.parse('https://cashoverflow-api.runasp.net/v1/team/members'),
       headers: {
@@ -65,8 +61,23 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => TeamMember.fromJson(json)).toList();
+      final dynamic decoded = jsonDecode(response.body);
+
+      List<dynamic> listData = [];
+      if (decoded is List) {
+        listData = decoded;
+      } else if (decoded is Map<String, dynamic>) {
+        final dynamic nested =
+            decoded['data'] ?? decoded['members'] ?? decoded['items'];
+        if (nested is List) {
+          listData = nested;
+        }
+      }
+
+      return listData
+          .whereType<Map<String, dynamic>>()
+          .map((json) => TeamMember.fromJson(json))
+          .toList();
     } else {
       throw Exception(
         'Failed to load team members (${response.statusCode}): ${response.body}',
@@ -78,7 +89,8 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE6E6E6),
-      body: Expanded(
+      // Using SafeArea / SizedBox directly without the illegal Expanded
+      body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
           child: Column(
@@ -92,7 +104,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Cash Flow Analysis',
+                        'Team Management',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -101,11 +113,8 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Your company's cash position, what the AI has flagged, and what it recommends doing about it.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        "Manage accounts with access to your organization's dashboard.",
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -116,7 +125,6 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                         builder: (context) => const InviteMemberDialog(),
                       );
                       if (result == true) {
-                        // إعادة تحميل القائمة بعد إرسال الدعوة بنجاح
                         setState(() {
                           _teamMembersFuture = fetchTeamMembers();
                         });
@@ -146,7 +154,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                 ],
               ),
               const SizedBox(height: 32),
-      
+
               // Team Members Card Table Container
               Container(
                 width: double.infinity,
@@ -168,7 +176,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-      
+
                     // API Data Table / Loader
                     FutureBuilder<List<TeamMember>>(
                       future: _teamMembersFuture,
@@ -177,9 +185,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                             ConnectionState.waiting) {
                           return const Padding(
                             padding: EdgeInsets.all(40.0),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                            child: Center(child: CircularProgressIndicator()),
                           );
                         } else if (snapshot.hasError) {
                           return Padding(
@@ -200,7 +206,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                             ),
                           );
                         }
-      
+
                         final members = snapshot.data!;
                         return Container(
                           decoration: BoxDecoration(
@@ -269,18 +275,16 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                                   ],
                                 ),
                               ),
-      
+
                               // Table Rows
                               ListView.separated(
                                 shrinkWrap: true,
-                                physics:
-                                    const NeverScrollableScrollPhysics(),
+                                physics: const NeverScrollableScrollPhysics(),
                                 itemCount: members.length,
-                                separatorBuilder: (context, index) =>
-                                    Divider(
-                                      height: 1,
-                                      color: Colors.grey.shade200,
-                                    ),
+                                separatorBuilder: (context, index) => Divider(
+                                  height: 1,
+                                  color: Colors.grey.shade200,
+                                ),
                                 itemBuilder: (context, index) {
                                   final member = members[index];
                                   return Padding(
@@ -324,13 +328,13 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                                         Expanded(
                                           flex: 2,
                                           child: Align(
-                                            alignment:
-                                                Alignment.centerRight,
+                                            alignment: Alignment.centerRight,
                                             child: OutlinedButton.icon(
                                               onPressed: () {},
                                               style: OutlinedButton.styleFrom(
-                                                foregroundColor:
-                                                    const Color(0xFFDC2626),
+                                                foregroundColor: const Color(
+                                                  0xFFDC2626,
+                                                ),
                                                 side: const BorderSide(
                                                   color: Color(0xFFEF4444),
                                                 ),
@@ -341,9 +345,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                                                     ),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                        20,
-                                                      ),
+                                                      BorderRadius.circular(20),
                                                 ),
                                               ),
                                               icon: const Icon(
@@ -354,8 +356,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                                                 'Remove access',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  fontWeight:
-                                                      FontWeight.w500,
+                                                  fontWeight: FontWeight.w500,
                                                 ),
                                               ),
                                             ),
