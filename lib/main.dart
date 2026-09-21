@@ -1,3 +1,4 @@
+import 'package:cash_overflow/demo_requests.dart';
 import 'package:flutter/material.dart';
 import 'package:cash_overflow/Done_after_subscripe_page.dart';
 import 'package:cash_overflow/SignIn_page.dart';
@@ -21,8 +22,9 @@ class MyApp extends StatelessWidget {
     // 1. إذا كان التطبيق يعتمد على Hash Strategy (/#/set-password)
     if (baseUri.hasFragment && baseUri.fragment.isNotEmpty) {
       final fragment = baseUri.fragment;
-      final formattedFragment =
-          fragment.startsWith('/') ? fragment : '/$fragment';
+      final formattedFragment = fragment.startsWith('/')
+          ? fragment
+          : '/$fragment';
       return Uri.parse(formattedFragment);
     }
 
@@ -74,13 +76,12 @@ class MyApp extends StatelessWidget {
 
         // 3. مسار نجاح الدفع
         if (path.startsWith('/payment-success')) {
-          final String? sessionId =
-              fullUri.queryParameters['session_id']?.trim();
+          final String? sessionId = fullUri.queryParameters['session_id']
+              ?.trim();
 
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) =>
-                DoneAfterSubscripePage(sessionId: sessionId),
+            builder: (context) => DoneAfterSubscripePage(sessionId: sessionId),
           );
         }
 
@@ -91,8 +92,7 @@ class MyApp extends StatelessWidget {
 
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) =>
-                PaymentFailedPage(errorMessage: errorMessage),
+            builder: (context) => PaymentFailedPage(errorMessage: errorMessage),
           );
         }
 
@@ -101,6 +101,13 @@ class MyApp extends StatelessWidget {
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => const SignInPage(),
+          );
+        }
+        
+        if (path.startsWith('/admin-dashboard')) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => const DemoRequestsManagementScreen(),
           );
         }
 

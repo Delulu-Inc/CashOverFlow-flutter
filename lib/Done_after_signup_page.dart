@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:cash_overflow/Activate_plan_page.dart';
 import 'package:cash_overflow/landing_page.dart';
 import 'package:flutter/material.dart';
 

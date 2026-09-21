@@ -36,35 +36,41 @@ class DemoRequest {
     }
 
     return DemoRequest(
-      id: json['id'] ??
+      id:
+          json['id'] ??
           json['Id'] ??
           json['demoRequestId'] ??
           json['requestId'] ??
           '',
-      companyName: json['companyName'] ??
+      companyName:
+          json['companyName'] ??
           json['company_name'] ??
           json['CompanyName'] ??
           json['company'] ??
           '',
-      contactEmail: json['companyEmail'] ??
+      contactEmail:
+          json['companyEmail'] ??
           json['contactEmail'] ??
           json['email'] ??
           json['contact_email'] ??
           json['ContactEmail'] ??
           json['company_email'] ??
           '',
-      phoneNumber: json['phoneNumber'] ??
+      phoneNumber:
+          json['phoneNumber'] ??
           json['phone_number'] ??
           json['phone'] ??
           json['PhoneNumber'] ??
           '',
-      submissionDate: formatDate(json['submittedAt'] ??
-          json['submissionDate'] ??
-          json['submission_date'] ??
-          json['createdAt'] ??
-          json['SubmissionDate'] ??
-          json['created_at'] ??
-          json['submitted_at']),
+      submissionDate: formatDate(
+        json['submittedAt'] ??
+            json['submissionDate'] ??
+            json['submission_date'] ??
+            json['createdAt'] ??
+            json['SubmissionDate'] ??
+            json['created_at'] ??
+            json['submitted_at'],
+      ),
       status: json['status'] ?? json['Status'] ?? 'Pending',
     );
   }
@@ -206,7 +212,8 @@ class _DemoRequestsManagementScreenState
     setState(() {
       filteredRequests = allRequests.where((item) {
         // Search Match
-        final matchesQuery = item.companyName.toLowerCase().contains(query) ||
+        final matchesQuery =
+            item.companyName.toLowerCase().contains(query) ||
             item.contactEmail.toLowerCase().contains(query);
 
         // Status Match
@@ -299,9 +306,10 @@ class _DemoRequestsManagementScreenState
               const Text(
                 'Demo Requests Management',
                 style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(height: 4),
               const Text(
@@ -326,13 +334,20 @@ class _DemoRequestsManagementScreenState
                       controller: _searchController,
                       onChanged: (_) => _applyFilters(),
                       style: const TextStyle(
-                          color: Color(0xFF0F172A), fontSize: 13),
+                        color: Color(0xFF0F172A),
+                        fontSize: 13,
+                      ),
                       decoration: const InputDecoration(
                         hintText: 'Search',
-                        hintStyle:
-                            TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                        prefixIcon: Icon(Icons.search,
-                            color: Color(0xFF94A3B8), size: 18),
+                        hintStyle: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 13,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Color(0xFF94A3B8),
+                          size: 18,
+                        ),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(vertical: 10),
                       ),
@@ -340,22 +355,29 @@ class _DemoRequestsManagementScreenState
                   ),
                   OutlinedButton.icon(
                     onPressed: _showFilterDialog,
-                    icon: const Icon(Icons.tune,
-                        size: 16, color: Color(0xFF1D4ED8)),
+                    icon: const Icon(
+                      Icons.tune,
+                      size: 16,
+                      color: Color(0xFF1D4ED8),
+                    ),
                     label: const Text(
                       'Apply filters',
                       style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF1D4ED8)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1D4ED8),
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       side: const BorderSide(color: Color(0xFF1D4ED8)),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                 ],
@@ -376,8 +398,10 @@ class _DemoRequestsManagementScreenState
                     padding: const EdgeInsets.all(40.0),
                     child: Column(
                       children: [
-                        Text(errorMessage!,
-                            style: const TextStyle(color: Colors.red)),
+                        Text(
+                          errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
                         const SizedBox(height: 12),
                         ElevatedButton(
                           onPressed: _fetchRequests,
@@ -396,74 +420,126 @@ class _DemoRequestsManagementScreenState
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withValues(alpha: .02),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2)),
+                        color: Colors.black.withValues(alpha: .02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
                     ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: DataTable(
-                      headingRowColor:
-                          WidgetStateProperty.all(const Color(0xFFEEF2FF)),
+                      headingRowColor: WidgetStateProperty.all(
+                        const Color(0xFFEEF2FF),
+                      ),
                       headingRowHeight: 48,
                       horizontalMargin: 24,
                       columnSpacing: 20,
                       columns: const [
                         DataColumn(
-                            label: Text('Company Name',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A8A)))),
+                          label: Text(
+                            'Company Name',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
                         DataColumn(
-                            label: Text('Contact Email',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A8A)))),
+                          label: Text(
+                            'Contact Email',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
                         DataColumn(
-                            label: Text('Phone Number',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A8A)))),
+                          label: Text(
+                            'Phone Number',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
                         DataColumn(
-                            label: Text('Submission Date',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A8A)))),
+                          label: Text(
+                            'Submission Date',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
                         DataColumn(
-                            label: Text('Status',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A8A)))),
+                          label: Text(
+                            'Status',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
                         DataColumn(
-                            label: Text('Action',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E3A8A)))),
+                          label: Text(
+                            'Action',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
                       ],
                       rows: filteredRequests.map((request) {
-                        return DataRow(cells: [
-                          DataCell(Text(request.companyName,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF333333)))),
-                          DataCell(Text(request.contactEmail,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF333333)))),
-                          DataCell(Text(request.phoneNumber,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF333333)))),
-                          DataCell(Text(request.submissionDate,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF333333)))),
-                          DataCell(_buildStatusBadge(request.status)),
-                          DataCell(_buildActionButton(request)),
-                        ]);
+                        return DataRow(
+                          cells: [
+                            DataCell(
+                              Text(
+                                request.companyName,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                request.contactEmail,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                request.phoneNumber,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                request.submissionDate,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF333333),
+                                ),
+                              ),
+                            ),
+                            DataCell(_buildStatusBadge(request.status)),
+                            DataCell(_buildActionButton(request)),
+                          ],
+                        );
                       }).toList(),
                     ),
                   ),
@@ -479,19 +555,25 @@ class _DemoRequestsManagementScreenState
     Color color = status == 'Pending'
         ? const Color(0xFFD97706)
         : status == 'Contacted'
-            ? const Color(0xFF16A34A)
-            : const Color(0xFF64748B);
+        ? const Color(0xFF16A34A)
+        : const Color(0xFF64748B);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 6),
-        Text(status,
-            style: TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+        Text(
+          status,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
       ],
     );
   }
@@ -507,8 +589,9 @@ class _DemoRequestsManagementScreenState
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1D4ED8),
             elevation: 0,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
           child: isApproving
@@ -516,13 +599,18 @@ class _DemoRequestsManagementScreenState
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 )
-              : const Text('Approve & Send Email',
+              : const Text(
+                  'Approve & Send Email',
                   style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       );
     } else if (request.status == 'Contacted') {
@@ -532,15 +620,19 @@ class _DemoRequestsManagementScreenState
           onPressed: () => _showCancelDialog(request),
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Color(0xFFDC2626)),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
-          child: const Text('Cancel Subscription',
-              style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFDC2626))),
+          child: const Text(
+            'Cancel Subscription',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFDC2626),
+            ),
+          ),
         ),
       );
     }
@@ -624,51 +716,75 @@ class _FilterDialogState extends State<FilterDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Filters',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Filters',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   GestureDetector(
                     onTap: _clearAll,
-                    child: const Text('Clear all',
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF808080),
-                            fontWeight: FontWeight.w500)),
+                    child: const Text(
+                      'Clear all',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF808080),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              const Text('Status',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const Text(
+                'Status',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _checkboxOption('Contacted', isContacted,
-                      (v) => setState(() => isContacted = v!)),
-                  _checkboxOption('Pending', isPending,
-                      (v) => setState(() => isPending = v!)),
                   _checkboxOption(
-                      'Closed', isClosed, (v) => setState(() => isClosed = v!)),
+                    'Contacted',
+                    isContacted,
+                    (v) => setState(() => isContacted = v!),
+                  ),
+                  _checkboxOption(
+                    'Pending',
+                    isPending,
+                    (v) => setState(() => isPending = v!),
+                  ),
+                  _checkboxOption(
+                    'Closed',
+                    isClosed,
+                    (v) => setState(() => isClosed = v!),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
-              const Text('Date',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const Text(
+                'Date',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
-                      child: TextField(
-                          controller: _startDateController,
-                          decoration: _inputDecoration('start'))),
+                    child: TextField(
+                      controller: _startDateController,
+                      decoration: _inputDecoration('start'),
+                    ),
+                  ),
                   const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child:
-                          Text('to', style: TextStyle(color: Color(0xFF666666)))),
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      'to',
+                      style: TextStyle(color: Color(0xFF666666)),
+                    ),
+                  ),
                   Expanded(
-                      child: TextField(
-                          controller: _endDateController,
-                          decoration: _inputDecoration('end'))),
+                    child: TextField(
+                      controller: _endDateController,
+                      decoration: _inputDecoration('end'),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -680,14 +796,18 @@ class _FilterDialogState extends State<FilterDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D4ED8),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22)),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
                     elevation: 0,
                   ),
-                  child: const Text('Apply filters',
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
+                  child: const Text(
+                    'Apply filters',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -698,7 +818,10 @@ class _FilterDialogState extends State<FilterDialog> {
   }
 
   Widget _checkboxOption(
-      String label, bool value, ValueChanged<bool?> onChanged) {
+    String label,
+    bool value,
+    ValueChanged<bool?> onChanged,
+  ) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: InkWell(
@@ -714,7 +837,8 @@ class _FilterDialogState extends State<FilterDialog> {
                 onChanged: onChanged,
                 activeColor: const Color(0xFF2563EB),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
               Text(label, style: const TextStyle(fontSize: 13)),
               const SizedBox(width: 8),
@@ -733,11 +857,13 @@ class _FilterDialogState extends State<FilterDialog> {
       filled: true,
       fillColor: Colors.white,
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF2563EB))),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2563EB)),
+      ),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5)),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+      ),
     );
   }
 }
@@ -767,16 +893,20 @@ class CancelSubscriptionDialog extends StatelessWidget {
               const Text(
                 'Are you sure you want to cancel this company’s subscription?',
                 style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    height: 1.3),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  height: 1.3,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
                 'This company will lose access to the system and will no longer be able to sign in.',
                 style: TextStyle(
-                    fontSize: 13, color: Color(0xFF666666), height: 1.4),
+                  fontSize: 13,
+                  color: Color(0xFF666666),
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -784,11 +914,14 @@ class CancelSubscriptionDialog extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('No',
-                        style: TextStyle(
-                            color: Color(0xFF333333),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14)),
+                    child: const Text(
+                      'No',
+                      style: TextStyle(
+                        color: Color(0xFF333333),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
@@ -796,16 +929,22 @@ class CancelSubscriptionDialog extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1D4ED8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 10),
+                        horizontal: 24,
+                        vertical: 10,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       elevation: 0,
                     ),
-                    child: const Text('Yes',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14)),
+                    child: const Text(
+                      'Yes',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ],
               ),

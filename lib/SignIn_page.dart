@@ -52,6 +52,7 @@ class _SignInPageState extends State<SignInPage> {
     }
     return null;
   }
+  
   void _navigateBasedOnRole(String? role) {
     if (!mounted) return;
 
