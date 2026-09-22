@@ -11,18 +11,32 @@ class SetPasswordRequest {
   final String token;
   final String password;
   final String confirmPassword;
+  final String firstName;
+  final String lastName;
 
   SetPasswordRequest({
     required this.token,
     required this.password,
     required this.confirmPassword,
+    this.firstName = "Team",
+    this.lastName = "Member",
   });
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toOnboardingJson() {
     return {
       'token': token,
       'password': password,
       'confirmPassword': confirmPassword,
+    };
+  }
+
+  Map<String, dynamic> toTeamJson() {
+    return {
+      'token': token,
+      'password': password,
+      'confirmPassword': confirmPassword,
+      'firstName': firstName.isNotEmpty ? firstName : "Team",
+      'lastName': lastName.isNotEmpty ? lastName : "Member",
     };
   }
 }
@@ -43,7 +57,7 @@ class OnboardingService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: jsonEncode(request.toJson()),
+      body: jsonEncode(request.toOnboardingJson()),
     );
 
     debugPrint(
@@ -85,7 +99,7 @@ class TeamService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: jsonEncode(request.toJson()),
+      body: jsonEncode(request.toTeamJson()),
     );
 
     debugPrint(
@@ -101,11 +115,21 @@ class TeamService {
     try {
       final errorData = jsonDecode(response.body);
       if (errorData is Map<String, dynamic>) {
-        errorMessage =
-            errorData['message'] ??
-            errorData['error'] ??
-            errorData['title'] ??
-            errorMessage;
+        if (errorData['errors'] != null && errorData['errors'] is Map) {
+          final errorsMap = errorData['errors'] as Map<String, dynamic>;
+          final allErrors = errorsMap.values
+              .expand((e) => e is List ? e : [e])
+              .join(' ');
+          errorMessage = allErrors.isNotEmpty
+              ? allErrors
+              : (errorData['title'] ?? errorMessage);
+        } else {
+          errorMessage =
+              errorData['message'] ??
+              errorData['error'] ??
+              errorData['title'] ??
+              errorMessage;
+        }
       }
     } catch (_) {
       if (response.body.isNotEmpty) errorMessage = response.body;
@@ -237,11 +261,12 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
         token: tokenToUse,
         password: _passwordController.text,
         confirmPassword: _confirmPasswordController.text,
+        firstName: "Team",
+        lastName: "Member",
       );
 
       bool success = false;
 
-      // Routes cleanly to the designated service based on the URL type parameter
       if (_activeType?.toLowerCase() == 'team') {
         success = await TeamService.acceptInvite(request);
       } else {
