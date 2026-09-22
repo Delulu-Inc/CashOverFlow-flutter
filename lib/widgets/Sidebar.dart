@@ -1,12 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SidebarWidget extends StatefulWidget {
   final String currentRoute;
-
   final ValueChanged<String>? onNavigate;
 
   const SidebarWidget({
@@ -30,16 +28,13 @@ class _SidebarWidgetState extends State<SidebarWidget> {
   @override
   void initState() {
     super.initState();
-
     _activeItem = widget.currentRoute;
-
     _fetchUserData();
   }
 
   @override
   void didUpdateWidget(covariant SidebarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.currentRoute != widget.currentRoute) {
       setState(() {
         _activeItem = widget.currentRoute;
@@ -50,19 +45,16 @@ class _SidebarWidgetState extends State<SidebarWidget> {
   Future<void> _fetchUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       final token = prefs.getString('auth_token') ?? prefs.getString('token');
 
       if (token == null) {
         if (!mounted) return;
-
         setState(() {
           _firstuserName = 'Guest';
           _lastuserName = '';
           _userRole = '';
           _isLoadingUser = false;
         });
-
         return;
       }
 
@@ -77,18 +69,20 @@ class _SidebarWidgetState extends State<SidebarWidget> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        if (!mounted) return;
+        final role = data['role'] ?? data['jobTitle'] ?? 'Member';
 
+        // Cache role locally for page route guards
+        await prefs.setString('user_role', role);
+
+        if (!mounted) return;
         setState(() {
           _firstuserName = data['firstName'] ?? 'User';
           _lastuserName = data['lastName'] ?? '';
-          _userRole = data['role'] ?? data['jobTitle'] ?? 'Member';
-
+          _userRole = role;
           _isLoadingUser = false;
         });
       } else {
         if (!mounted) return;
-
         setState(() {
           _firstuserName = 'User';
           _lastuserName = '';
@@ -98,7 +92,6 @@ class _SidebarWidgetState extends State<SidebarWidget> {
       }
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _firstuserName = 'User';
         _lastuserName = '';
@@ -121,6 +114,8 @@ class _SidebarWidgetState extends State<SidebarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isOwner = _userRole.trim().toLowerCase() == 'owner';
+
     return Container(
       width: 260,
       color: const Color(0xFF0A0F1D),
@@ -132,9 +127,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             child: Row(
               children: [
                 Image.asset('assets/img/logo.png', width: 26, height: 26),
-
                 const SizedBox(width: 12),
-
                 const Text(
                   'Cash Overflow',
                   style: TextStyle(
@@ -149,7 +142,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
 
           const SizedBox(height: 12),
 
-          // DASHBOARD
+          // DASHBOARD (Visible to everyone)
           _buildNavItem(
             Icons.dashboard_rounded,
             'Dashboard',
@@ -158,7 +151,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             },
           ),
 
-          // AI SUPPORT
+          // AI SUPPORT (Visible to everyone)
           _buildNavItem(
             Icons.auto_awesome,
             'AI Support',
@@ -167,25 +160,28 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             },
           ),
 
-          // TEAM MANAGEMENT
-          _buildNavItem(
-            Icons.group_outlined,
-            'Team Management',
-            onTap: () {
-              _navigate('Team Management', '/team-management');
-            },
-          ),
+          // RESTRICTED TO OWNER ONLY
+          if (isOwner) ...[
+            // TEAM MANAGEMENT
+            _buildNavItem(
+              Icons.group_outlined,
+              'Team Management',
+              onTap: () {
+                _navigate('Team Management', '/team-management');
+              },
+            ),
 
-          // SUBSCRIPTION
-          _buildNavItem(
-            Icons.credit_card,
-            'Subscription',
-            onTap: () {
-              _navigate('Subscription', '/subscription');
-            },
-          ),
+            // SUBSCRIPTION
+            _buildNavItem(
+              Icons.credit_card,
+              'Subscription',
+              onTap: () {
+                _navigate('Subscription', '/subscription');
+              },
+            ),
+          ],
 
-          // PROFILE SETTINGS
+          // PROFILE SETTINGS (Visible to everyone)
           _buildNavItem(
             Icons.settings_outlined,
             'Profile Settings',
@@ -206,11 +202,8 @@ class _SidebarWidgetState extends State<SidebarWidget> {
               isLogout: true,
               onTap: () async {
                 final prefs = await SharedPreferences.getInstance();
-
                 await prefs.clear();
-
                 if (!mounted) return;
-
                 Navigator.pushReplacementNamed(context, '/login');
               },
             ),
@@ -226,8 +219,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                   radius: 18,
                   backgroundColor: const Color(0xFF1D4ED8),
                   child: Text(
-                    // Fallback to first letter of firstName or 'U'
-                    (_firstuserName != null && _firstuserName.isNotEmpty)
+                    (_firstuserName.isNotEmpty)
                         ? _firstuserName[0].toUpperCase()
                         : 'U',
                     style: const TextStyle(
@@ -237,9 +229,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: _isLoadingUser
                       ? const SizedBox(
@@ -266,9 +256,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                                     ),
                                   ),
                                 ),
-
                                 const SizedBox(width: 4),
-
                                 Flexible(
                                   child: Text(
                                     _lastuserName,
@@ -282,10 +270,8 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                                 ),
                               ],
                             ),
-
                             if (_userRole.isNotEmpty) ...[
                               const SizedBox(height: 2),
-
                               Text(
                                 _userRole,
                                 overflow: TextOverflow.ellipsis,
@@ -336,9 +322,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                       : (isActive ? Colors.blueAccent : Colors.grey[400]),
                   size: 20,
                 ),
-
                 const SizedBox(width: 12),
-
                 Text(
                   title,
                   style: TextStyle(

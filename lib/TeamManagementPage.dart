@@ -41,12 +41,30 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
   @override
   void initState() {
     super.initState();
-    _teamMembersFuture = fetchTeamMembers();
+    _checkRoleAndInitialize();
+  }
+
+  Future<void> _checkRoleAndInitialize() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? role = prefs.getString('user_role');
+
+    // If role is known and is not Owner, redirect to dashboard immediately
+    if (role != null && role.trim().toLowerCase() != 'owner') {
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/dashboard');
+      }
+      return;
+    }
+
+    setState(() {
+      _teamMembersFuture = fetchTeamMembers();
+    });
   }
 
   Future<List<TeamMember>> fetchTeamMembers() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('auth_token');
+    final String? token =
+        prefs.getString('auth_token') ?? prefs.getString('token');
 
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token not found. Please log in again.');
@@ -78,6 +96,12 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
           .whereType<Map<String, dynamic>>()
           .map((json) => TeamMember.fromJson(json))
           .toList();
+    } else if (response.statusCode == 401 || response.statusCode == 403) {
+      // Forbidden or unauthorized: redirect away
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/dashboard');
+      }
+      return [];
     } else {
       throw Exception(
         'Failed to load team members (${response.statusCode}): ${response.body}',
@@ -89,7 +113,6 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE6E6E6),
-      // Using SafeArea / SizedBox directly without the illegal Expanded
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
@@ -108,7 +131,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          color: Color(0xFF1E3A8A),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -172,7 +195,7 @@ class _TeamManagementPageState extends State<TeamManagementPage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Color(0xFF1E3A8A),
                       ),
                     ),
                     const SizedBox(height: 20),

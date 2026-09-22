@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'subscription_models.dart';
 import 'subscription_service.dart';
 
@@ -14,8 +15,8 @@ class SubscriptionBillingScreen extends StatefulWidget {
 class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
   final SubscriptionService _apiService = SubscriptionService();
 
-  late Future<SubscriptionDetails> _subscriptionFuture;
-  late Future<List<BillingHistoryItem>> _billingHistoryFuture;
+  Future<SubscriptionDetails>? _subscriptionFuture;
+  Future<List<BillingHistoryItem>>? _billingHistoryFuture;
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -26,7 +27,7 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _checkRoleAndLoadData();
   }
 
   @override
@@ -36,6 +37,21 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
     _expiryController.dispose();
     _cvcController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkRoleAndLoadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? role = prefs.getString('user_role');
+
+    // If role is known and is not Owner, redirect to dashboard immediately
+    if (role != null && role.trim().toLowerCase() != 'owner') {
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/dashboard');
+      }
+      return;
+    }
+
+    _loadData();
   }
 
   void _loadData() {
@@ -102,72 +118,75 @@ class _SubscriptionBillingScreenState extends State<SubscriptionBillingScreen> {
               const SizedBox(height: 20),
 
               // Subscription Plan
-              FutureBuilder<SubscriptionDetails>(
-                future: _subscriptionFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Card(
-                      child: SizedBox(
-                        height: 154,
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Error loading subscription: ${snapshot.error}',
-                          style: const TextStyle(color: Colors.red),
+              if (_subscriptionFuture != null)
+                FutureBuilder<SubscriptionDetails>(
+                  future: _subscriptionFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Card(
+                        child: SizedBox(
+                          height: 154,
+                          child: Center(child: CircularProgressIndicator()),
                         ),
-                      ),
-                    );
-                  }
-                  final data = snapshot.data;
-                  if (data == null) return const SizedBox.shrink();
-                  return _buildSubscriptionPlanCard(data);
-                },
-              ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Error loading subscription: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      );
+                    }
+                    final data = snapshot.data;
+                    if (data == null) return const SizedBox.shrink();
+                    return _buildSubscriptionPlanCard(data);
+                  },
+                ),
 
               const SizedBox(height: 16),
 
               // Payment Method
-              FutureBuilder<SubscriptionDetails>(
-                future: _subscriptionFuture,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const SizedBox.shrink();
-                  return _buildPaymentMethodCard(snapshot.data!);
-                },
-              ),
+              if (_subscriptionFuture != null)
+                FutureBuilder<SubscriptionDetails>(
+                  future: _subscriptionFuture,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    return _buildPaymentMethodCard(snapshot.data!);
+                  },
+                ),
 
               const SizedBox(height: 16),
 
               // Billing History
-              FutureBuilder<List<BillingHistoryItem>>(
-                future: _billingHistoryFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Card(
-                      child: SizedBox(
-                        height: 200,
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Error loading billing history: ${snapshot.error}',
-                          style: const TextStyle(color: Colors.red),
+              if (_billingHistoryFuture != null)
+                FutureBuilder<List<BillingHistoryItem>>(
+                  future: _billingHistoryFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Card(
+                        child: SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
                         ),
-                      ),
-                    );
-                  }
-                  final history = snapshot.data ?? [];
-                  return _buildBillingHistoryCard(history);
-                },
-              ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Error loading billing history: ${snapshot.error}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      );
+                    }
+                    final history = snapshot.data ?? [];
+                    return _buildBillingHistoryCard(history);
+                  },
+                ),
             ],
           ),
         ),
