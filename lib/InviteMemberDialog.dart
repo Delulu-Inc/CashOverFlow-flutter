@@ -18,10 +18,7 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
   String? _selectedRole;
 
   // الأدوار المتاحة المحددة
-  final List<String> _roles = [
-    'Owner',
-    'Finance Manager',
-  ];
+  final List<String> _roles = ['Owner', 'Finance Manager'];
 
   bool _isLoading = false;
 
@@ -149,39 +146,18 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _selectedRole,
-                hint: Text(
-                  'Select position',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                ),
-                items: _roles.map((String role) {
-                  return DropdownMenuItem<String>(
-                    value: role,
-                    child: Text(
-                      role,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
+                items: const [
+                  DropdownMenuItem(
+                    value: "FinanceManager", // <-- Value sent to API (no space)
+                    child: Text("Finance Manager"), // Display label
+                  ),
+                  DropdownMenuItem(value: "Owner", child: Text("Owner")),
+                ],
+                onChanged: (val) {
                   setState(() {
-                    _selectedRole = newValue;
+                    _selectedRole = val!;
                   });
                 },
-                decoration: _inputDecoration('Select position'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a position';
-                  }
-                  return null;
-                },
-                icon: const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: Color(0xFF64748B),
-                ),
-                dropdownColor: Colors.white,
               ),
               const SizedBox(height: 32),
 
@@ -190,9 +166,7 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () => Navigator.pop(context),
+                    onPressed: _isLoading ? null : () => Navigator.pop(context),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF334155),
                       padding: const EdgeInsets.symmetric(
