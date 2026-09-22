@@ -220,63 +220,85 @@ class _SidebarWidgetState extends State<SidebarWidget> {
 
           Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Expanded(
-              child: _isLoadingUser
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.blueAccent,
-                      ),
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFF1D4ED8),
+                  child: Text(
+                    // Fallback to first letter of firstName or 'U'
+                    (_firstuserName != null && _firstuserName.isNotEmpty)
+                        ? _firstuserName[0].toUpperCase()
+                        : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: _isLoadingUser
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.blueAccent,
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Flexible(
-                              child: Text(
-                                _firstuserName,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    _firstuserName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                              ),
+
+                                const SizedBox(width: 4),
+
+                                Flexible(
+                                  child: Text(
+                                    _lastuserName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
 
-                            const SizedBox(width: 4),
+                            if (_userRole.isNotEmpty) ...[
+                              const SizedBox(height: 2),
 
-                            Flexible(
-                              child: Text(
-                                _lastuserName,
+                              Text(
+                                _userRole,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                  fontSize: 11,
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
-
-                        if (_userRole.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-
-                          Text(
-                            _userRole,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+                ),
+              ],
             ),
           ),
         ],

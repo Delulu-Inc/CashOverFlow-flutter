@@ -19,7 +19,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   bool _isLoadingPersonal = false;
   bool _isLoadingSecurity = false;
 
-  // Password Visibility States (للباسورد الجديد والتأكيد فقط)
+  // Password Visibility States (تمت إضافة _obscureCurrentPassword)
+  bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -386,8 +387,14 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   child: CustomInputField(
                     label: 'Current Password',
                     controller: _currentPasswordController,
+                    hintText: 'Enter current password',
                     isPassword: true,
-                    obscureText: true, // مخفية دائماً بدون أيقونة عين
+                    obscureText: _obscureCurrentPassword,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _obscureCurrentPassword = !_obscureCurrentPassword;
+                      });
+                    },
                     validator: (val) => val == null || val.isEmpty
                         ? 'Enter current password'
                         : null,
@@ -545,7 +552,6 @@ class CustomInputField extends StatelessWidget {
             fillColor: readOnly
                 ? const Color(0xFFF8FAFC)
                 : const Color(0xFFFAFAFA),
-            // إظهار زر العين فقط إذا كانت الخافية تدعم ذلك (onToggleVisibility ليست null)
             suffixIcon: isPassword && onToggleVisibility != null
                 ? IconButton(
                     icon: Icon(

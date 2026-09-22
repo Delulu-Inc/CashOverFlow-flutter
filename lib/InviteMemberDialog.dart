@@ -13,7 +13,15 @@ class InviteMemberDialog extends StatefulWidget {
 class _InviteMemberDialogState extends State<InviteMemberDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _roleController = TextEditingController();
+
+  // قيمة الـ Position المختارة من القائمة
+  String? _selectedRole;
+
+  // الأدوار المتاحة المحددة
+  final List<String> _roles = [
+    'Owner',
+    'Finance Manager',
+  ];
 
   bool _isLoading = false;
 
@@ -23,11 +31,8 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. جلب التوكين من SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString(
-        'auth_token',
-      ); // غير 'token' لاسم المفتاح اللي مخزن بيه التوكين
+      final String? token = prefs.getString('auth_token');
 
       if (token == null || token.isEmpty) {
         if (mounted) {
@@ -43,7 +48,6 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
         return;
       }
 
-      // 2. إرسال الطلب مع إرفاق الـ Authorization Header
       final response = await http.post(
         Uri.parse('https://cashoverflow-api.runasp.net/v1/team/invite'),
         headers: {
@@ -52,11 +56,10 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
         },
         body: jsonEncode({
           'email': _emailController.text.trim(),
-          'role': _roleController.text.trim(),
+          'role': _selectedRole,
         }),
       );
 
-      // طباعة النتيجة لسهولة التتبع (Debugging)
       debugPrint('Status Code: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
 
@@ -97,7 +100,6 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
   @override
   void dispose() {
     _emailController.dispose();
-    _roleController.dispose();
     super.dispose();
   }
 
@@ -142,18 +144,44 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
               ),
               const SizedBox(height: 20),
 
-              // Role Field
+              // Position Dropdown Field
               _buildFieldLabel('Position'),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _roleController,
-                decoration: _inputDecoration('Enter his/her position'),
+              DropdownButtonFormField<String>(
+                value: _selectedRole,
+                hint: Text(
+                  'Select position',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                ),
+                items: _roles.map((String role) {
+                  return DropdownMenuItem<String>(
+                    value: role,
+                    child: Text(
+                      role,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedRole = newValue;
+                  });
+                },
+                decoration: _inputDecoration('Select position'),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a position';
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a position';
                   }
                   return null;
                 },
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Color(0xFF64748B),
+                ),
+                dropdownColor: Colors.white,
               ),
               const SizedBox(height: 32),
 
@@ -162,7 +190,9 @@ class _InviteMemberDialogState extends State<InviteMemberDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isLoading ? null : () => Navigator.pop(context),
+                    onPressed: _isLoading
+                        ? null
+                        : () => Navigator.pop(context),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF334155),
                       padding: const EdgeInsets.symmetric(
