@@ -57,7 +57,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     final int days = _getDaysFromPeriod(selectedPeriod);
 
-    final DateTime startDate = DateTime(2026, 9, 25);
+    final DateTime startDate = DateTime(2026, 9, 1);
     final DateTime endDate = startDate.add(Duration(days: days));
     final String asOfParam = _formatAsOfDate(startDate);
 
