@@ -1,4 +1,5 @@
 import 'package:cash_overflow/ai_support.dart';
+import 'package:cash_overflow/widgets/DynamicRecommendationsSection.dart';
 import 'package:cash_overflow/widgets/DynamicRiskListView.dart';
 import 'package:cash_overflow/widgets/InteractiveCashChart.dart';
 import 'package:cash_overflow/widgets/KpiMetricsSection.dart';
@@ -7,10 +8,7 @@ import 'package:flutter/material.dart';
 class DashboardPage extends StatefulWidget {
   final VoidCallback? onOpenAiSupport;
 
-  const DashboardPage({
-    super.key,
-    this.onOpenAiSupport,
-  });
+  const DashboardPage({super.key, this.onOpenAiSupport});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -90,10 +88,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     const SizedBox(height: 4),
                     Text(
                       "Your company's cash position, what the AI has flagged, and what it recommends doing about it.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -106,9 +101,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.grey.shade200,
-                    ),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Row(
                     children: [
@@ -147,9 +140,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.grey.shade200,
-                      ),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,11 +166,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Expanded(
-                          child: InteractiveCashChart(
-                            days: days,
-                          ),
-                        ),
+                        Expanded(child: InteractiveCashChart(days: days)),
                       ],
                     ),
                   ),
@@ -198,9 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.grey.shade200,
-                      ),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +310,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 24),
 
             // =========================================================
-            // RECOMMENDATIONS
+            // RECOMMENDATIONS (DYNAMICALLY FETCHED FROM /v1/explanation)
             // =========================================================
             const Text(
               'Recommendations',
@@ -338,51 +323,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
             const SizedBox(height: 16),
 
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: RecommendationCard(
-                    tag: '# Delay non-essential Payments',
-                    title:
-                        r'Consider delaying $12K in non-essential payments until Oct 25. This will give you more flexibility over the next two weeks and help keep your projected cash balance above the minimum buffer.',
-                    points: const [
-                      r'+$12K Cash preserved',
-                      '14 days Flexibility gained',
-                      r'$60K Target buffer',
-                    ],
-                    onDiscuss: widget.onOpenAiSupport,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: RecommendationCard(
-                    tag: '# Review overdue invoices',
-                    title:
-                        r'Review the $20K in overdue invoices and follow up with customers who have missed their payment dates. Collecting these outstanding amounts could improve your available cash and reduce pressure on your upcoming expenses.',
-                    points: const [
-                      r'+$20K Potential cash recovered',
-                      '5 invoices Currently overdue',
-                      '7 days Suggested follow-up window',
-                    ],
-                    onDiscuss: widget.onOpenAiSupport,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: RecommendationCard(
-                    tag: '# Maintain your cash buffer',
-                    title:
-                        r'Your projected cash balance is expected to approach the $60K minimum buffer later this month. Consider monitoring upcoming expenses and prioritizing essential payments to maintain a safer cash position.',
-                    points: const [
-                      r'$60K Minimum target buffer',
-                      r'$18K Projected shortfall risk',
-                      '30 days Forecast period',
-                    ],
-                    onDiscuss: widget.onOpenAiSupport,
-                  ),
-                ),
-              ],
+            DynamicRecommendationsSection(
+              days: days,
+              asOf: asOfParam,
+              onOpenAiSupport: widget.onOpenAiSupport,
             ),
           ],
         ),
@@ -402,10 +346,7 @@ class _DashboardPageState extends State<DashboardPage> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
@@ -428,113 +369,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ================================================================
-// RECOMMENDATION CARD
-// ================================================================
-class RecommendationCard extends StatelessWidget {
-  final String tag;
-  final String title;
-  final List<String> points;
-  final VoidCallback? onDiscuss;
-
-  const RecommendationCard({
-    super.key,
-    required this.tag,
-    required this.title,
-    required this.points,
-    this.onDiscuss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            tag,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...points.map(
-            (point) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[400],
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      point,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF334155),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: onDiscuss,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1D4ED8),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              icon: const Icon(
-                Icons.public,
-                size: 16,
-              ),
-              label: const Text(
-                'Discuss with AI',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
