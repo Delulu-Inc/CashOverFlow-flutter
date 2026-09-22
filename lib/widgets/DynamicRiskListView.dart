@@ -21,10 +21,10 @@ class RiskSignal {
 
   factory RiskSignal.fromJson(Map<String, dynamic> json) {
     return RiskSignal(
-      riskType: json['risk_type'] ?? '',
-      severity: json['severity'] ?? 'low',
-      headline: json['headline'] ?? '',
-      headlineAr: json['headline_ar'] ?? '',
+      riskType: json['risk_type']?.toString() ?? '',
+      severity: json['severity']?.toString() ?? 'low',
+      headline: json['headline']?.toString() ?? '',
+      headlineAr: json['headline_ar']?.toString() ?? '',
     );
   }
 
@@ -32,13 +32,13 @@ class RiskSignal {
     switch (severity.toLowerCase()) {
       case 'high':
       case 'critical':
-        return Colors.red;
+        return const Color(0xFFEF4444);
       case 'medium':
-        return Colors.orange;
+      case 'warning':
+        return const Color(0xFFF59E0B);
       case 'low':
-        return Colors.green;
       default:
-        return Colors.blue;
+        return const Color(0xFF10B981);
     }
   }
 }
@@ -47,8 +47,14 @@ class RiskSignal {
 // 2. Dynamic Risk List Widget
 // ==========================================
 class DynamicRiskListView extends StatefulWidget {
-  const DynamicRiskListView({super.key, required this.days});
   final int days;
+  final String asOf;
+
+  const DynamicRiskListView({
+    super.key,
+    required this.days,
+    this.asOf = '2026-09-01',
+  });
 
   @override
   State<DynamicRiskListView> createState() => _DynamicRiskListViewState();
@@ -63,11 +69,10 @@ class _DynamicRiskListViewState extends State<DynamicRiskListView> {
     _risksFuture = fetchRiskSignals(widget.days);
   }
 
-  // تحديث الـ Future فور استلام قيمة جديدة لـ days من الويدجيت الأب
   @override
   void didUpdateWidget(covariant DynamicRiskListView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.days != widget.days) {
+    if (oldWidget.days != widget.days || oldWidget.asOf != widget.asOf) {
       setState(() {
         _risksFuture = fetchRiskSignals(widget.days);
       });
@@ -76,11 +81,11 @@ class _DynamicRiskListViewState extends State<DynamicRiskListView> {
 
   Future<List<RiskSignal>> fetchRiskSignals(int horizonDays) async {
     final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('auth_token');
+    final String? token = prefs.getString('auth_token') ?? prefs.getString('token');
 
     final response = await http.get(
       Uri.parse(
-        'https://cashoverflow-api.runasp.net/v1/risks?as_of=2026-09-01&horizon=$horizonDays&stress_buffer=false',
+        'https://cashoverflow-api.runasp.net/v1/risks?as_of=${widget.asOf}&horizon=$horizonDays&stress_buffer=false',
       ),
       headers: {
         'Content-Type': 'application/json',
@@ -100,38 +105,42 @@ class _DynamicRiskListViewState extends State<DynamicRiskListView> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FutureBuilder<List<RiskSignal>>(
-        future: _risksFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            );
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No risks identified'));
-          }
-
-          final signals = snapshot.data!;
-
-          return ListView.builder(
-            padding: EdgeInsets.zero,
-            itemCount: signals.length,
-            itemBuilder: (context, index) {
-              final signal = signals[index];
-              return NoteItem(
-                text: signal.headline,
-                color: signal.severityColor,
-              );
-            },
+    return FutureBuilder<List<RiskSignal>>(
+      future: _risksFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error: ${snapshot.error}',
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
           );
-        },
-      ),
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text(
+              'No risks identified for this period.',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          );
+        }
+
+        final signals = snapshot.data!;
+
+        return ListView.builder(
+          padding: EdgeInsets.zero,
+          itemCount: signals.length,
+          itemBuilder: (context, index) {
+            final signal = signals[index];
+            return NoteItem(
+              text: signal.headline,
+              color: signal.severityColor,
+              severity: signal.severity,
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -139,33 +148,48 @@ class _DynamicRiskListViewState extends State<DynamicRiskListView> {
 class NoteItem extends StatelessWidget {
   final String text;
   final Color color;
+  final String severity;
 
-  const NoteItem({super.key, required this.text, required this.color});
+  const NoteItem({
+    super.key,
+    required this.text,
+    required this.color,
+    required this.severity,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        onTap: () {},
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(8),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAFAFA),
-            borderRadius: BorderRadius.circular(8),
-            border: Border(left: BorderSide(color: color, width: 4)),
+        border: Border(left: BorderSide(color: color, width: 4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            severity.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: color,
+              letterSpacing: 0.5,
+            ),
           ),
-          child: Text(
+          const SizedBox(height: 4),
+          Text(
             text,
             style: const TextStyle(
               fontSize: 12,
               color: Color(0xFF334155),
               fontWeight: FontWeight.w500,
+              height: 1.35,
             ),
           ),
-        ),
+        ],
       ),
     );
   }

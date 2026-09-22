@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'package:cash_overflow/Dashboard_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ==========================================
-// 1. Model Class (نموذج البيانات)
+// 1. Model Class
 // ==========================================
 class KpiData {
   final double cashOnHand;
@@ -40,7 +39,6 @@ class KpiData {
   }
 }
 
-// دالة تحويل الأرقام الكبيرة لـ $22.9M أو $500K
 String formatCurrency(double amount) {
   if (amount.abs() >= 1000000) {
     return '\$${(amount / 1000000).toStringAsFixed(1)}M';
@@ -52,10 +50,66 @@ String formatCurrency(double amount) {
 }
 
 // ==========================================
-// 2. Section Widget (السكشن نفسه)
+// 2. MetricCard Widget
+// ==========================================
+class MetricCard extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const MetricCard({
+    super.key,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade200,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 3. Section Widget
 // ==========================================
 class KpiMetricsSection extends StatefulWidget {
-  const KpiMetricsSection({Key? key}) : super(key: key);
+  final int days;
+
+  const KpiMetricsSection({
+    super.key,
+    this.days = 30,
+  });
 
   @override
   State<KpiMetricsSection> createState() => _KpiMetricsSectionState();
@@ -67,19 +121,27 @@ class _KpiMetricsSectionState extends State<KpiMetricsSection> {
   @override
   void initState() {
     super.initState();
-    _kpiFuture = fetchKpis();
+    _kpiFuture = fetchKpis(widget.days);
   }
 
-  Future<KpiData> fetchKpis() async {
-    // 1. قراءة الـ Token المخزن عند الدخول
+  @override
+  void didUpdateWidget(covariant KpiMetricsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.days != widget.days) {
+      setState(() {
+        _kpiFuture = fetchKpis(widget.days);
+      });
+    }
+  }
+
+  Future<KpiData> fetchKpis(int horizonDays) async {
     final prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('auth_token');
+    final String? token = prefs.getString('auth_token') ?? prefs.getString('token');
 
     final url = Uri.parse(
-      'https://cashoverflow-api.runasp.net/v1/kpis?companyId=DEMO',
+      'https://cashoverflow-api.runasp.net/v1/kpis?companyId=DEMO&horizonDays=$horizonDays',
     );
 
-    // 2. إرسال الـ Token داخل الـ Authorization Header
     final response = await http.get(
       url,
       headers: {
@@ -104,10 +166,25 @@ class _KpiMetricsSectionState extends State<KpiMetricsSection> {
       future: _kpiFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox(
+            height: 80,
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
         } else if (snapshot.hasError) {
-          return Center(
-            child: Text('Error loading metrics: ${snapshot.error}'),
+          return SizedBox(
+            height: 80,
+            child: Center(
+              child: Text(
+                'Error loading metrics: ${snapshot.error}',
+                style: const TextStyle(color: Colors.red, fontSize: 13),
+              ),
+            ),
           );
         } else if (!snapshot.hasData) {
           return const SizedBox.shrink();
