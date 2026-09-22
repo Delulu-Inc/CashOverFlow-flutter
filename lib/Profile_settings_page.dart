@@ -19,7 +19,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   bool _isLoadingPersonal = false;
   bool _isLoadingSecurity = false;
 
-  // Password Visibility States (تمت إضافة _obscureCurrentPassword)
+  // Password Visibility States
   bool _obscureCurrentPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
@@ -38,7 +38,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  // رابط صورة استاتيكي ثابت
+  // Static Avatar Url
   static const String _staticAvatarUrl =
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop';
 
@@ -61,9 +61,18 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     super.dispose();
   }
 
+  String _formatRole(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    final trimmed = raw.trim();
+    if (trimmed.toLowerCase() == 'financemanager') {
+      return 'Finance Manager';
+    }
+    return trimmed;
+  }
+
   Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    return prefs.getString('auth_token') ?? prefs.getString('token');
   }
 
   Future<void> _fetchUserProfile() async {
@@ -97,7 +106,9 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           _firstNameController.text = data['firstName'] ?? '';
           _lastNameController.text = data['lastName'] ?? '';
           _emailController.text = data['email'] ?? '';
-          _positionController.text = data['role'] ?? '';
+          _positionController.text = _formatRole(
+            data['role'] ?? data['jobTitle'],
+          );
           _idController.text =
               data['companyId'] ?? data['organizationId'] ?? '';
         });
@@ -236,6 +247,15 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   }
 
   Widget _buildPersonalInformationCard() {
+    final String fullName =
+        '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
+            .trim();
+    final String displayName = fullName.isNotEmpty
+        ? fullName
+        : (_emailController.text.isNotEmpty
+              ? _emailController.text.split('@')[0]
+              : 'User');
+
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -252,7 +272,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_firstNameController.text} ${_lastNameController.text}',
+                  displayName,
                   style: const TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.bold,
@@ -305,6 +325,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     label: 'Position',
                     controller: _positionController,
                     readOnly: true,
+                    isLocked: true,
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -314,6 +335,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     readOnly: true,
+                    isLocked: true,
                   ),
                 ),
               ],
@@ -390,6 +412,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     hintText: 'Enter current password',
                     isPassword: true,
                     obscureText: _obscureCurrentPassword,
+                    preventAutofill: true,
                     onToggleVisibility: () {
                       setState(() {
                         _obscureCurrentPassword = !_obscureCurrentPassword;
@@ -406,6 +429,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     label: 'Company / Org ID',
                     controller: _idController,
                     readOnly: true,
+                    isLocked: true,
                   ),
                 ),
               ],
@@ -508,6 +532,8 @@ class CustomInputField extends StatelessWidget {
   final bool obscureText;
   final VoidCallback? onToggleVisibility;
   final bool readOnly;
+  final bool isLocked;
+  final bool preventAutofill;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
 
@@ -520,6 +546,8 @@ class CustomInputField extends StatelessWidget {
     this.obscureText = false,
     this.onToggleVisibility,
     this.readOnly = false,
+    this.isLocked = false,
+    this.preventAutofill = false,
     this.keyboardType = TextInputType.text,
     this.validator,
   });
@@ -541,16 +569,25 @@ class CustomInputField extends StatelessWidget {
         TextFormField(
           controller: controller,
           obscureText: isPassword ? obscureText : false,
-          readOnly: readOnly,
+          readOnly: readOnly || isLocked,
+          enabled: !isLocked,
+          canRequestFocus: !isLocked,
+          mouseCursor: isLocked
+              ? SystemMouseCursors.basic
+              : SystemMouseCursors.text,
           keyboardType: keyboardType,
           validator: validator,
-          style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+          autofillHints: preventAutofill ? const [] : null,
+          style: TextStyle(
+            fontSize: 14,
+            color: isLocked ? const Color(0xFF475569) : const Color(0xFF1E293B),
+          ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
             filled: true,
-            fillColor: readOnly
-                ? const Color(0xFFF8FAFC)
+            fillColor: (readOnly || isLocked)
+                ? const Color(0xFFF1F5F9)
                 : const Color(0xFFFAFAFA),
             suffixIcon: isPassword && onToggleVisibility != null
                 ? IconButton(
@@ -570,7 +607,11 @@ class CustomInputField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
