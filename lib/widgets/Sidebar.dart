@@ -51,9 +51,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      final token =
-          prefs.getString('auth_token') ??
-          prefs.getString('token');
+      final token = prefs.getString('auth_token') ?? prefs.getString('token');
 
       if (token == null) {
         if (!mounted) return;
@@ -69,9 +67,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
       }
 
       final response = await http.get(
-        Uri.parse(
-          'https://cashoverflow-api.runasp.net/v1/me',
-        ),
+        Uri.parse('https://cashoverflow-api.runasp.net/v1/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -86,10 +82,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
         setState(() {
           _firstuserName = data['firstName'] ?? 'User';
           _lastuserName = data['lastName'] ?? '';
-          _userRole =
-              data['role'] ??
-              data['jobTitle'] ??
-              'Member';
+          _userRole = data['role'] ?? data['jobTitle'] ?? 'Member';
 
           _isLoadingUser = false;
         });
@@ -115,10 +108,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
     }
   }
 
-  void _navigate(
-    String itemName,
-    String route,
-  ) {
+  void _navigate(String itemName, String route) {
     debugPrint('CLICKED: $itemName');
     debugPrint('ROUTE: $route');
 
@@ -141,11 +131,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             padding: const EdgeInsets.all(24.0),
             child: Row(
               children: [
-                Image.asset(
-                  'assets/img/logo.png',
-                  width: 26,
-                  height: 26,
-                ),
+                Image.asset('assets/img/logo.png', width: 26, height: 26),
 
                 const SizedBox(width: 12),
 
@@ -168,10 +154,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             Icons.dashboard_rounded,
             'Dashboard',
             onTap: () {
-              _navigate(
-                'Dashboard',
-                '/dashboard',
-              );
+              _navigate('Dashboard', '/dashboard');
             },
           ),
 
@@ -180,10 +163,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             Icons.auto_awesome,
             'AI Support',
             onTap: () {
-              _navigate(
-                'AI Support',
-                '/ai-support',
-              );
+              _navigate('AI Support', '/ai-support');
             },
           ),
 
@@ -192,10 +172,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             Icons.group_outlined,
             'Team Management',
             onTap: () {
-              _navigate(
-                'Team Management',
-                '/team-management',
-              );
+              _navigate('Team Management', '/team-management');
             },
           ),
 
@@ -204,10 +181,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             Icons.credit_card,
             'Subscription',
             onTap: () {
-              _navigate(
-                'Subscription',
-                '/subscription',
-              );
+              _navigate('Subscription', '/subscription');
             },
           ),
 
@@ -216,127 +190,93 @@ class _SidebarWidgetState extends State<SidebarWidget> {
             Icons.settings_outlined,
             'Profile Settings',
             onTap: () {
-              _navigate(
-                'Profile Settings',
-                '/profile-settings',
-              );
+              _navigate('Profile Settings', '/profile-settings');
             },
           ),
 
           const Spacer(),
 
-          const Divider(
-            color: Color(0xFF1E293B),
-            height: 1,
-          ),
+          const Divider(color: Color(0xFF1E293B), height: 1),
 
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: _buildNavItem(
               Icons.logout_rounded,
               'Log out',
               isLogout: true,
               onTap: () async {
-                final prefs =
-                    await SharedPreferences.getInstance();
+                final prefs = await SharedPreferences.getInstance();
 
                 await prefs.clear();
 
                 if (!mounted) return;
 
-                Navigator.pushReplacementNamed(
-                  context,
-                  '/login',
-                );
+                Navigator.pushReplacementNamed(context, '/login');
               },
             ),
           ),
 
-          const Divider(
-            color: Color(0xFF1E293B),
-            height: 1,
-          ),
+          const Divider(color: Color(0xFF1E293B), height: 1),
 
           Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop',
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: _isLoadingUser
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.blueAccent,
-                          ),
-                        )
-                      : Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+            child: Expanded(
+              child: _isLoadingUser
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.blueAccent,
+                      ),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    _firstuserName,
-                                    overflow:
-                                        TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight:
-                                          FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(width: 4),
-
-                                Flexible(
-                                  child: Text(
-                                    _lastuserName,
-                                    overflow:
-                                        TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight:
-                                          FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            if (_userRole.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-
-                              Text(
-                                _userRole,
-                                overflow:
-                                    TextOverflow.ellipsis,
+                            Flexible(
+                              child: Text(
+                                _firstuserName,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 11,
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ],
+                            ),
+
+                            const SizedBox(width: 4),
+
+                            Flexible(
+                              child: Text(
+                                _lastuserName,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                ),
-              ],
+
+                        if (_userRole.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+
+                          Text(
+                            _userRole,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
             ),
           ),
         ],
@@ -350,18 +290,12 @@ class _SidebarWidgetState extends State<SidebarWidget> {
     bool isLogout = false,
     VoidCallback? onTap,
   }) {
-    final bool isActive =
-        _activeItem == title;
+    final bool isActive = _activeItem == title;
 
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 4,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: isActive
-            ? const Color(0xFF1E293B)
-            : Colors.transparent,
+        color: isActive ? const Color(0xFF1E293B) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Material(
@@ -370,19 +304,14 @@ class _SidebarWidgetState extends State<SidebarWidget> {
           borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Row(
               children: [
                 Icon(
                   icon,
                   color: isLogout
                       ? Colors.redAccent
-                      : (isActive
-                          ? Colors.blueAccent
-                          : Colors.grey[400]),
+                      : (isActive ? Colors.blueAccent : Colors.grey[400]),
                   size: 20,
                 ),
 
@@ -393,13 +322,9 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                   style: TextStyle(
                     color: isLogout
                         ? Colors.redAccent
-                        : (isActive
-                            ? Colors.white
-                            : Colors.grey[400]),
+                        : (isActive ? Colors.white : Colors.grey[400]),
                     fontSize: 14,
-                    fontWeight: isActive
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ],

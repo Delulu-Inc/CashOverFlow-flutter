@@ -247,35 +247,25 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // صورة استاتيكية فقط بدون زر التعديل
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage(_staticAvatarUrl),
+                Text(
+                  '${_firstNameController.text} ${_lastNameController.text}',
+                  style: const TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
-                const SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_firstNameController.text} ${_lastNameController.text}',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _positionController.text,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  _positionController.text,
+                  style: TextStyle(fontSize: 17, color: Colors.grey[600]),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 45),
             const Text(
               'Personal Information',
               style: TextStyle(

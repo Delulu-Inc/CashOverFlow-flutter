@@ -3,9 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// ==========================================
-// 1. MODEL
-// ==========================================
+// =============================================================================
+// 1. MODELS
+// =============================================================================
+
 class SetPasswordRequest {
   final String token;
   final String password;
@@ -26,63 +27,104 @@ class SetPasswordRequest {
   }
 }
 
-// ==========================================
-// 2. SERVICE
-// ==========================================
+// =============================================================================
+// 2. SEPARATED SERVICES (ONBOARDING vs TEAM)
+// =============================================================================
+
 class OnboardingService {
   static const String baseUrl = 'https://cashoverflow-api.runasp.net/v1';
 
   static Future<bool> acceptInvite(SetPasswordRequest request) async {
     final url = Uri.parse('$baseUrl/onboarding/accept-invite');
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(request.toJson()),
-      );
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(request.toJson()),
+    );
 
-      // طباعة الاستجابة في الـ Console لمعاينة الـ Response الدقيق
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
+    debugPrint(
+      'Onboarding Accept Response [${response.statusCode}]: ${response.body}',
+    );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
-      } else {
-        String errorMessage = 'Failed to set password (${response.statusCode})';
-        try {
-          final errorData = jsonDecode(response.body);
-          if (errorData is Map<String, dynamic>) {
-            errorMessage = errorData['message'] ??
-                errorData['error'] ??
-                errorData['title'] ??
-                errorMessage;
-          }
-        } catch (_) {
-          // إذا لم تكن الاستجابة بتنسيق JSON
-          if (response.body.isNotEmpty) {
-            errorMessage = response.body;
-          }
-        }
-        throw Exception(errorMessage);
-      }
-    } catch (e) {
-      rethrow;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
     }
+
+    String errorMessage =
+        'Failed to complete onboarding (${response.statusCode})';
+    try {
+      final errorData = jsonDecode(response.body);
+      if (errorData is Map<String, dynamic>) {
+        errorMessage =
+            errorData['message'] ??
+            errorData['error'] ??
+            errorData['title'] ??
+            errorMessage;
+      }
+    } catch (_) {
+      if (response.body.isNotEmpty) errorMessage = response.body;
+    }
+
+    throw Exception(errorMessage);
   }
 }
 
-// ==========================================
-// 3. UI & WIDGET STATE
-// ==========================================
+class TeamService {
+  static const String baseUrl = 'https://cashoverflow-api.runasp.net/v1';
+
+  static Future<bool> acceptInvite(SetPasswordRequest request) async {
+    final url = Uri.parse('$baseUrl/team/accept-invite');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    debugPrint(
+      'Team Accept Response [${response.statusCode}]: ${response.body}',
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    }
+
+    String errorMessage =
+        'Failed to accept team invite (${response.statusCode})';
+    try {
+      final errorData = jsonDecode(response.body);
+      if (errorData is Map<String, dynamic>) {
+        errorMessage =
+            errorData['message'] ??
+            errorData['error'] ??
+            errorData['title'] ??
+            errorMessage;
+      }
+    } catch (_) {
+      if (response.body.isNotEmpty) errorMessage = response.body;
+    }
+
+    throw Exception(errorMessage);
+  }
+}
+
+// =============================================================================
+// 3. UI SCREEN & WIDGET
+// =============================================================================
+
 class SetPasswordPage extends StatefulWidget {
   final String? token;
   final String? orgId;
+  final String? type;
 
-  const SetPasswordPage({super.key, this.token, this.orgId});
+  const SetPasswordPage({super.key, this.token, this.orgId, this.type});
 
   @override
   State<SetPasswordPage> createState() => _SetPasswordPageState();
@@ -98,11 +140,10 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
-  // Extracted URL Parameters
   String? _activeToken;
   String? _activeOrgId;
+  String? _activeType;
 
-  // Validation States
   bool _hasMinLength = false;
   bool _hasNumber = false;
   bool _hasSpecialChar = false;
@@ -116,30 +157,33 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
     _confirmPasswordController.addListener(_validatePassword);
   }
 
-  /// دالة استخراج وتجهيز التوكين والـ OrgID لضمان بقائهما متوفرين
   void _extractParametersFromUrl() {
     String? token = widget.token?.trim();
     String? orgId = widget.orgId?.trim();
+    String? type = widget.type?.trim();
 
-    if (token == null || token.isEmpty) {
-      final currentUri = Uri.base;
+    final currentUri = Uri.base;
 
-      if (currentUri.hasFragment && currentUri.fragment.isNotEmpty) {
-        final fragment = currentUri.fragment;
-        final formattedFragment =
-            fragment.startsWith('/') ? fragment : '/$fragment';
-        final fragmentUri = Uri.parse(formattedFragment);
+    // 1. Check hash fragment (Flutter web default #/...)
+    if (currentUri.hasFragment && currentUri.fragment.isNotEmpty) {
+      final fragment = currentUri.fragment.startsWith('/')
+          ? currentUri.fragment
+          : '/${currentUri.fragment}';
+      final fragmentUri = Uri.parse(fragment);
 
-        token = fragmentUri.queryParameters['token']?.trim();
-        orgId ??= fragmentUri.queryParameters['orgId']?.trim();
-      } else {
-        token = currentUri.queryParameters['token']?.trim();
-        orgId ??= currentUri.queryParameters['orgId']?.trim();
-      }
+      token ??= fragmentUri.queryParameters['token']?.trim();
+      orgId ??= fragmentUri.queryParameters['orgId']?.trim();
+      type ??= fragmentUri.queryParameters['type']?.trim();
     }
+
+    // 2. Fallback to standard query parameters
+    token ??= currentUri.queryParameters['token']?.trim();
+    orgId ??= currentUri.queryParameters['orgId']?.trim();
+    type ??= currentUri.queryParameters['type']?.trim();
 
     _activeToken = token;
     _activeOrgId = orgId;
+    _activeType = type;
   }
 
   void _validatePassword() {
@@ -195,7 +239,14 @@ class _SetPasswordPageState extends State<SetPasswordPage> {
         confirmPassword: _confirmPasswordController.text,
       );
 
-      final success = await OnboardingService.acceptInvite(request);
+      bool success = false;
+
+      // Routes cleanly to the designated service based on the URL type parameter
+      if (_activeType?.toLowerCase() == 'team') {
+        success = await TeamService.acceptInvite(request);
+      } else {
+        success = await OnboardingService.acceptInvite(request);
+      }
 
       if (mounted && success) {
         ScaffoldMessenger.of(context).clearSnackBars();
