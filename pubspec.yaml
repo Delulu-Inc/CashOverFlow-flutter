@@ -1,5 +1,5 @@
 name: cash_overflow
-description: "A new Flutter project."
+description: "Cash Overflow - AI-powered cash-flow forecasting, risk detection and what-if simulations."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -35,7 +35,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   fl_chart: ^1.2.0
-  font_awesome_flutter: ^11.0.0
   http: ^1.6.0
   shared_preferences: ^2.5.5
   flutter_bloc: ^9.1.1
