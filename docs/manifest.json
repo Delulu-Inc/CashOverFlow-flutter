@@ -1,12 +1,12 @@
 {
-    "name": "cash_overflow",
-    "short_name": "cash_overflow",
+    "name": "Cash Overflow",
+    "short_name": "Cash Overflow",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#07080C",
+    "theme_color": "#07080C",
+    "description": "AI-powered cash-flow forecasting, risk detection and what-if simulations.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
